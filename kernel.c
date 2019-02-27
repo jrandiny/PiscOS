@@ -27,35 +27,38 @@ int stringCompare(char* a, char* b, int length);
 int mod(int a, int b);
 int div(int a, int b);
 void clear(char *buffer, int length);
+void printTxt(char * filename,int x, int y, int color);
+void clearScreen(int height);
 
 int main() {
    char tempFile[SECTOR_SIZE*MAX_SECTORS];
    char test[SECTOR_SIZE];
    int suc = 0;
-   putInMemory(0xB000, 0x8000, 'K');
-   putInMemory(0xB000, 0x8001, 0xD);
-   putInMemory(0xB000, 0x8002, 'e');
-   putInMemory(0xB000, 0x8003, 0xD);
-   putInMemory(0xB000, 0x8004, 'r');
-   putInMemory(0xB000, 0x8005, 0xD);
-   putInMemory(0xB000, 0x8006, 'n');
-   putInMemory(0xB000, 0x8007, 0xD);
-   putInMemory(0xB000, 0x8008, 'e');
-   putInMemory(0xB000, 0x8009, 0xD);
-   putInMemory(0xB000, 0x800A, 'l');
-   putInMemory(0xB000, 0x800B, 0xD);
-   putInMemory(0xB000, 0x800C, '!');
-   putInMemory(0xB000, 0x800D, 0xD);
    makeInterrupt21();
-
-   printString("exe");
-
-   executeProgram("program",0x2000,&suc);
-
-   printString("asd");
-   
+   clearScreen(30);
+   printTxt("title.txt",20,0,0xF);
+   printTxt("logo.txt",25,5,0x6);
+   printString("Press any key to continue...");
+   interrupt(0x16, 0, 0, 0, 0);
    while (1){
-      
+      printString("ketik:");
+      readString(test);
+      if (stringCompare(test,"./calc",SECTOR_SIZE)){
+         executeProgram("program",0x2000,&suc);
+      } else if(stringCompare(test,"./keyproc",SECTOR_SIZE)) {
+         executeProgram("keyproc",0x2000,&suc);
+      } else if (stringCompare(test,"./readFile",SECTOR_SIZE)) {
+         printString("Nama File");
+         readString(test);
+         readFile(tempFile,test,&suc);
+         if (suc){
+            printString(tempFile);
+         } else {
+            printString("Gagal buka file");
+         }
+      }else {
+         printString(test);
+      }
    }
 }
 
@@ -280,5 +283,36 @@ void executeProgram(char *filename, int segment, int *success){
          i++;
       }
       launchProgram(segment);
+   }
+}
+
+void printTxt(char *filename,int x, int y,int color){
+   int succ;
+   char buff[SECTOR_SIZE*MAX_SECTORS];
+   int i=0;
+   int j=y;
+   int k=x;
+   readFile(buff,filename,&succ);
+   if(succ){
+      while(buff[i]!='\0'){
+         if (buff[i]=='\n'){
+            j++;
+            k=x;
+         } else {
+            putInMemory(0xB000, 0x8000 + (80 * j + k) * 2, buff[i]);
+            putInMemory(0xB000, 0x8001 + (80 * j + k) * 2, color);
+            k++;
+         }
+         i++;
+      }
+   }
+}
+
+void clearScreen(int height){
+   int i,j;
+   for (i=0;i<height;i++){
+      for (j=0;j<80;j++){
+         putInMemory(0xB000, 0x8000 + (80 * i + j) * 2,' ');
+      }
    }
 }

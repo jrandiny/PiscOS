@@ -13,3 +13,5 @@ bcc -ansi -c -o program.o program.c
 ld86 -o program -d program.o lib_asm.o
 ./loadFile program
 ./loadFile keyproc
+./loadFile logo.txt
+./loadFile title.txt
