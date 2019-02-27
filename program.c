@@ -1,4 +1,4 @@
-#define MAX_MEM 20
+#define MAX_MEM 31
 
 int charToInt(char* angka);
 int mod(int a, int b);

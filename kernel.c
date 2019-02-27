@@ -40,6 +40,10 @@ int main() {
    printTxt("logo.txt",25,5,0x6);
    printString("Press any key to continue...");
    interrupt(0x16, 0, 0, 0, 0);
+
+
+   executeProgram("program",0x2000,&suc);
+
    while (1){
       printString("ketik:");
       readString(test);
