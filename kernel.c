@@ -62,6 +62,7 @@ int main() {
    printTxt("logo.txt",25,5,0x6);
    printString("Press any key to continue...");
    interrupt(0x16, 0, 0, 0, 0);
+   interrupt(0x10,0x3,0,0,0);
 
    while (1){
       readFile(tempFile,"title.txt",&suc,0xff);
@@ -434,7 +435,7 @@ void executeProgram(char *path, int segment, int *result, char parentIndex){
    int i = 0;
    readFile(buf,path,result,parentIndex);
 
-   if(*result){
+   if(*result==0){
       while(i<SECTOR_SIZE*MAX_SECTORS){
          putInMemory(segment,i,buf[i]);
          i++;
@@ -494,7 +495,7 @@ void putArgs (char curdir, char argc, char **argv) {
    args[1] = argc;
    i = 0;
    j = 0;
-   for (p = 1; p < ARGS_SECTOR && i < argc; ++p) {
+   for (p = 2; p < SECTOR_SIZE && i < argc; ++p) {
       args[p] = argv[i][j];
       if (argv[i][j] == '\0') {
          ++i;
@@ -527,7 +528,7 @@ void getArgv (char index, char *argv) {
 
    i = 0;
    j = 0;
-   for (p = 1; p < ARGS_SECTOR; ++p) {
+   for (p = 2; p < ARGS_SECTOR; ++p) {
       if (i == index) {
          argv[j] = args[p];
          ++j;
