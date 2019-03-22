@@ -3,6 +3,7 @@
 #define SECTOR_SIZE 512
 #define MAX_DIRECTORY 32
 #define MAX_FILES 32
+#define MAX_FILESYSTEM_ITEM 32
 #define MAX_DIRECTORYNAME 15
 #define MAX_FILENAME 15
 #define MAX_SECTORS 16
@@ -49,93 +50,44 @@ void clear(char *buffer, int length);
 void printTxt(char * filename,int x, int y, int color);
 void clearScreen(int height);
 void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
-void finder(char* name,char* dir, int* idx, int *succ);
+void finder(char* name,char* dir, int parent,int* idx);
 
 int main() {
-   // char tempFile[SECTOR_SIZE*MAX_SECTORS];
-   char asd[10];
-   // char test[SECTOR_SIZE];
+   char tempFile[SECTOR_SIZE*MAX_SECTORS];
    int suc = 0;
-   // char strTest[4];
+
    makeInterrupt21();
-   // clearScreen(15);
-   // printTxt("title.txt",20,0,0xF);
-   // printTxt("logo.txt",25,5,0x6);
-   asd[0] = 'a';
-   asd[1] = '\0';
-   makeDirectory(asd,&suc,0xff);
-   printString(asd);
-   asd[0] = 'a';
-   asd[1] = '/';
-   asd[2] = 'b';
-   asd[3] = '\0';
-   makeDirectory(asd,&suc,0xff);
-   printString(asd);
-   asd[3] = '/';
-   asd[4] = 'c';
-   asd[5] = '\0';
-   writeFile(asd,asd,1,0xff);
-   printString(asd);
-   asd[0] = 'a';
-   asd[1] = '\0';
-   deleteDirectory(asd,&suc,0xff);
-   if(suc==0){
-      printString("ses");
-   } else {
-      printString("not");
+   clearScreen(30);
+   printTxt("title.txt",20,0,0xF);
+   printTxt("logo.txt",25,5,0x6);
+   printString("Press any key to continue...");
+   interrupt(0x16, 0, 0, 0, 0);
+
+   while (1){
+      readFile(tempFile,"title.txt",&suc,0xff);
+      suc = 1;
+      makeDirectory("abc",&suc,0xff);
+      makeDirectory("abc/josh",&suc,0xff);
+      makeDirectory("abc/josh",&suc,0xff);
+
+      if(suc==ALREADY_EXISTS){
+         suc =1;
+         writeFile(tempFile,"abc/josh/a.txt",&suc,0xff);
+         suc =1;
+         writeFile(tempFile,"abc/a.txt",&suc,0xff);
+         suc =1;
+         writeFile(tempFile,"a.txt",&suc,0xff);
+         printString("expected 3 file");
+         readString(&tempFile);
+         deleteFile("a.txt",&suc,0xff);
+         if(suc==0){
+            deleteDirectory("abc",&suc,0xff);
+            printString("kalimat di bawah ini salah");
+         }
+      }
+      printString("gagal beneran nih");
+      while(1){}
    }
-   while(1){
-      // printString("Ad");
-   }   
-   // printString("Press any key to continue...");
-   // interrupt(0x16, 0, 0, 0, 0);
-
-   // deleteFile("title.txt",&suc,0xff);
-
-   // while (1){
-      // readFile(tempFile,"title.txt",&suc,0xff);
-      // suc = 1;
-      // makeDirectory("abc",&suc,0xff);
-      // makeDirectory("abc/josh",&suc,0xff);
-      // if(suc==0){
-      //    printString("sukses dir");
-      //    writeFile(tempFile,"abc/josh/abc.txt",&suc,0xff);
-      //    writeFile(tempFile,"abc/josh/abc.txt",&suc,0xff);
-      //    if(suc==0){
-      //       readFile(tempFile,"abc/josh/abc.txt",&suc,0xff);
-      //       printString(tempFile);
-      //    }else{
-      //       if(suc==ALREADY_EXISTS){
-               // printString("SAd");
-      //       }
-      //       printString("gagal");
-      //    }
-      // }else{
-      //    if(suc==ALREADY_EXISTS){
-      //       printString("exists");
-      //    }
-      //    printString("error");
-      // }
-      // while(1){}
-      // printString("ketik:");
-      // readString(test);
-   //    if (stringCompare(test,"./calc",SECTOR_SIZE)){
-   //       executeProgram("program",0x2000,&suc);
-   //    } else if(stringCompare(test,"./keyproc",SECTOR_SIZE)) {
-   //       executeProgram("keyproc",0x2000,&suc);
-   //    } else if (stringCompare(test,"./readFile",SECTOR_SIZE)) {
-   //       printString("Nama File");
-         // readString(test);
-   //       readFile(tempFile,test,&suc);
-   //       if (suc){
-   //          printString(tempFile);
-   //       } else {
-   //          printString("Gagal buka file");
-   //       }
-   //    }else {
-   //       printString(test);
-   //    }
-   // }
 }
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX) {
@@ -252,7 +204,6 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
          filePart = 1;
       }else{
          stringCopy(path,dirSearch,lastEnd,temp-lastEnd+1);
-         // printString(dirSearch);
          found = 0;
          *dirIndex = 0;
          while((*dirIndex)<MAX_DIRECTORY && !found){
@@ -278,15 +229,18 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    stringCopy(path,fileName,lastEnd,temp+1);
 }
 
-void finder(char* name,char* dir, int* idx, int *succ){
-   *succ=0;
+void finder(char* name,char* dir, int parent,int* idx){
+   int found=0;
    *idx=0;
-   while(*idx<SECTOR_SIZE && !*succ){
-      if(stringCompare(name,dir+*idx+1,MAX_FILENAME)){
-         *succ = 1;
+   while((*idx)<MAX_FILESYSTEM_ITEM && !found){
+      if(stringCompare(name,dir+(*idx)*DIR_ENTRY_LENGTH+1,MAX_FILENAME)&&dir[(*idx)*DIR_ENTRY_LENGTH]==parent){
+         found = 1;
       }else{
-         *idx += DIR_ENTRY_LENGTH;
+         (*idx)++;
       }
+   }
+   if(!found){
+      *idx=NOT_FOUND;
    }
 }
 
@@ -298,6 +252,8 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 
    char dirSearch[MAX_DIRECTORYNAME];
    char fileName[MAX_FILENAME];
+
+   char temp22[3];
 
    char sectorBuffer[SECTOR_SIZE];
    int fileIndex;
@@ -325,7 +281,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    // Cari direktori
    pathParser(path,fileName,&dirIndex,parentIndex);
    if(dirIndex==NOT_FOUND){
-      // printString("not f");
       *sectors = NOT_FOUND;
       return;
    }
@@ -341,7 +296,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    }
 
    if(sectorCount < *sectors){
-      // printString("gagal");
       *sectors = INSUFFICIENT_SECTORS;
       return;
    }else{
@@ -350,10 +304,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
       found = 0;
       fileExists = 0;
       while(fileIndex<MAX_FILES && !found && !fileExists){
-         if (files[fileIndex * DIR_ENTRY_LENGTH] == '\0') {
+         if (files[fileIndex * DIR_ENTRY_LENGTH+1] == '\0') {
             found = 1;
          }else{
-            if(stringCompare(files+fileIndex*DIR_ENTRY_LENGTH+1,fileName,0,MAX_FILENAME)){
+            if(stringCompare(files+fileIndex*DIR_ENTRY_LENGTH+1,fileName,0,MAX_FILENAME)&&files[fileIndex*DIR_ENTRY_LENGTH]==dirIndex){
                fileExists = 1;
             }
             fileIndex++;
@@ -364,13 +318,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
          if(!fileExists){
             // Entry file
             clear(files + fileIndex * DIR_ENTRY_LENGTH, DIR_ENTRY_LENGTH);
-            for (i = 0; i < MAX_FILENAME; i++) {
-               if (fileName[i] != '\0') {
-                  files[fileIndex * DIR_ENTRY_LENGTH + i + 1] = fileName[i];
-               } else {
-                  break;
-               }
-            }
+            stringCopy(fileName,files+fileIndex * DIR_ENTRY_LENGTH+ 1 ,0,MAX_FILENAME);
 
             files[fileIndex*DIR_ENTRY_LENGTH] = dirIndex;
 
@@ -396,12 +344,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
             writeSector(saveSectors,SECTORS_SECTOR);
 
          }else{
-            // printString("ASD");
             *sectors = ALREADY_EXISTS;
             return;
          }
       }else{
-         // printString("Asd");
          *sectors = INSUFFICIENT_ENTRIES;
          return;
       }
@@ -412,22 +358,12 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    char directories[SECTOR_SIZE];
    char files[SECTOR_SIZE];
    char sectors[SECTOR_SIZE];
-   // char currDir[MAX_DIRECTORYNAME];
    char filename[MAX_FILENAME];
    int listOfSector[MAX_FILES];
-   // int* tempSectorAddr;
    int dirIdx=0;
    int fileIdx=0;
-   int fileFound=0;
-   // int dirFound=0;
-   // int filePart=0;
    int i=0;
-   // int startIdx=0;
-   // int endIdx;
-   // int depth=0;
-   // char parentNow = parentIndex;
-   // *result = NOT_FOUND;
-   // parentIndex = '\xff';  
+
 
    readSector(directories,DIRS_SECTOR);  
    readSector(files,FILES_SECTOR);
@@ -439,18 +375,11 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       return;
    }
    
-   finder(filename,files,&fileIdx,&fileFound);
-   // while(fileIdx<SECTOR_SIZE && !fileFound){
-   //    if(stringCompare(filename,files+fileIdx+1,MAX_FILENAME)){
-   //       fileFound = 1;
-   //    }else{
-   //       fileIdx += DIR_ENTRY_LENGTH;
-   //    }
-   // }
+   finder(filename,files,dirIdx,&fileIdx);
 
-   if(fileFound && *(files+fileIdx)==dirIdx){
+   if(fileIdx!=NOT_FOUND){
       for(i=0;i<MAX_SECTORS;i++){
-         listOfSector[i] = *(sectors+fileIdx+i);
+         listOfSector[i] = *(sectors+fileIdx*DIR_ENTRY_LENGTH+i);
       }
       i = 0;
       while(i<MAX_SECTORS && listOfSector[i]!=EMPTY){
@@ -622,20 +551,18 @@ void makeDirectory(char *path, int *result, char parentIndex){
    int dirIdx;
    int foundIdx;
    int parentIdx;
-   // int lastPart;
    int i;
-   int succ;
+   char temp[2];
 
    readSector(directories,DIRS_SECTOR);
    emptyFound=0;
    dirIdx=0;
-   // lastPart=0;
    
-   while(dirIdx<SECTOR_SIZE && !emptyFound){
-      if(*(directories+dirIdx)==EMPTY){
+   while(dirIdx<MAX_FILESYSTEM_ITEM && !emptyFound){
+      if(*(directories+dirIdx*DIR_ENTRY_LENGTH)==EMPTY){
          emptyFound=1;
       } else {
-         dirIdx+=DIR_ENTRY_LENGTH;
+         dirIdx++;
       }
    }
 
@@ -645,13 +572,13 @@ void makeDirectory(char *path, int *result, char parentIndex){
          *result=NOT_FOUND;
          return;
       }else{
-         finder(filename,directories,&foundIdx,&succ);
-         if(succ){
+         finder(filename,directories,parentIdx,&foundIdx);
+         if(foundIdx!=NOT_FOUND){
             *result=ALREADY_EXISTS;
             return;
          }else{
-            directories[dirIdx]=parentIdx;
-            stringCopy(filename,directories+dirIdx+1,0,MAX_FILENAME);
+            directories[dirIdx*DIR_ENTRY_LENGTH]=parentIdx;
+            stringCopy(filename,directories+dirIdx*DIR_ENTRY_LENGTH+1,0,MAX_FILENAME);
             writeSector(directories,DIRS_SECTOR);
             *result=0;
          }
@@ -669,7 +596,7 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    char test[2];
    int dirIdx;
    int i;
-   int succ;
+   int succ=1;
 
    readSector(directories,DIRS_SECTOR);
    readSector(files,FILES_SECTOR);
@@ -678,31 +605,23 @@ void deleteDirectory(char *path, int *success, char parentIndex){
      *success = NOT_FOUND;
       return;
    }
-   finder(dirName,directories,&dirIdx,&succ);
-   printString(dirName);
-   test[0] = dirIdx + '0';
-   test[1] = '\0';
-   printString(test);
-   if(succ){
-      printString("succ");
-      directories[dirIdx]=EMPTY;
+   finder(dirName,directories,dirIdx,&dirIdx);
+   if(dirIdx!=NOT_FOUND){
+      directories[dirIdx*DIR_ENTRY_LENGTH]=EMPTY;
       for(i=0;i<MAX_DIRECTORYNAME;i++){
-         directories[dirIdx+i+1]=EMPTY;
+         directories[dirIdx*DIR_ENTRY_LENGTH+i+1]=EMPTY;
       }
       for(i=0;i<MAX_DIRECTORY;i++){
-         if(directories[i*DIR_ENTRY_LENGTH]==dirIdx/DIR_ENTRY_LENGTH && directories[i*DIR_ENTRY_LENGTH+1]!='\0'){
+         if(directories[i*DIR_ENTRY_LENGTH]==dirIdx && directories[i*DIR_ENTRY_LENGTH+1]!='\0'){
             stringCopy(directories,dirName,i*DIR_ENTRY_LENGTH+1,MAX_DIRECTORYNAME);
-            printString("recur");
-            printString(dirName);
             writeSector(directories,DIRS_SECTOR);
             deleteDirectory(dirName,&succ,dirIdx);
             readSector(directories,DIRS_SECTOR);
          }
       }
       for(i=0;i<MAX_FILES;i++){
-         if(files[i*DIR_ENTRY_LENGTH]==dirIdx/DIR_ENTRY_LENGTH && files[i*DIR_ENTRY_LENGTH+1]!='\0'){
+         if(files[i*DIR_ENTRY_LENGTH]==dirIdx && files[i*DIR_ENTRY_LENGTH+1]!='\0'){
             stringCopy(files,filename,i*DIR_ENTRY_LENGTH+1,MAX_FILENAME);
-            printString(filename);
             deleteFile(filename,&succ,dirIdx);
          }
       }
@@ -719,10 +638,11 @@ void deleteFile(char *path, int *result, char parentIndex){
    char map[SECTOR_SIZE];
    char sectors[SECTOR_SIZE];
    char filename[MAX_FILENAME];
+   char test[2];
    int dirIdx;
    int fileIdx;
    int i;
-   int succ;
+   int succ=1;
 
    readSector(directories,DIRS_SECTOR);
    readSector(files,FILES_SECTOR);
@@ -734,21 +654,22 @@ void deleteFile(char *path, int *result, char parentIndex){
      *result = NOT_FOUND;
       return;
    }
-   finder(filename,files,&fileIdx,&succ);
-   // printString("ASD");
+   finder(filename,files,dirIdx,&fileIdx);
 
-   if(succ){   
-      files[fileIdx]=EMPTY;
+   if(fileIdx!=NOT_FOUND){
+      files[fileIdx*DIR_ENTRY_LENGTH]=EMPTY;
       for(i=0;i<MAX_FILENAME;i++){
-         files[fileIdx+i+1]=EMPTY;
+         files[fileIdx*DIR_ENTRY_LENGTH+i+1]=EMPTY;
       }
       for(i=0;i<MAX_SECTORS;i++){
-         map[*(sectors+fileIdx+i)]=EMPTY;
-         *(sectors+fileIdx+i)=EMPTY;
+         map[*(sectors+fileIdx*DIR_ENTRY_LENGTH+i)]=EMPTY;
+         *(sectors+fileIdx*DIR_ENTRY_LENGTH+i)=EMPTY;
       }
+      
       writeSector(files,FILES_SECTOR);
       writeSector(map,MAP_SECTOR);
       writeSector(sectors,SECTORS_SECTOR);
+      *result=0;
    } else {
       *result=NOT_FOUND;
    }
