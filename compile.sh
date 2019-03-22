@@ -11,10 +11,19 @@ bcc -ansi -c -o string.o string.c
 as86 kernel.asm -o kernel_asm.o
 ld86 -o kernel -d kernel.o kernel_asm.o string.o
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
-# as86 lib.asm -o lib_asm.o
+as86 lib.asm -o lib_asm.o
 # bcc -ansi -c -o program.o program.c
 # ld86 -o program -d program.o lib_asm.o
 # ./loadFile program
 # ./loadFile keyproc
+bcc -ansi -c -o echo.o echo.c
+bcc -ansi -c -o mkdir.o mkdir.c
+bcc -ansi -c -o ls.o ls.c
+ld86 -o echo -d echo.o lib_asm.o
+ld86 -o mkdir -d mkdir.o lib_asm.o
+ld86 -o ls -d ls.o lib_asm.o
+./loadFile echo
+./loadFile mkdir
+./loadFile ls
 ./loadFile logo.txt
 ./loadFile title.txt
