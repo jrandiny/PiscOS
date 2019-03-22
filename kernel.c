@@ -42,7 +42,7 @@ int main() {
    interrupt(0x16, 0, 0, 0, 0);
 
 
-   executeProgram("program",0x2000,&suc);
+   // executeProgram("program",0x2000,&suc);
 
    while (1){
       printString("ketik:");
