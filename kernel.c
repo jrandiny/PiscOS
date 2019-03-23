@@ -55,6 +55,7 @@ void finder(char* name,char* dir, int parent,int* idx);
 int main() {
    char tempFile[SECTOR_SIZE*MAX_SECTORS];
    int suc = 0;
+   int i;
 
    makeInterrupt21();
    clearScreen(30);
@@ -406,10 +407,14 @@ void printString(char *string){
 void readString(char *string){
    char buffer[SECTOR_SIZE];
    char c;
+   char sc;
+   unsigned full;
    int counter = 0;
    int i =0;
    do{
-      c = interrupt(0x16, 0, 0, 0, 0);
+      full = getKeyboardFull();
+      c = full & 0xff;
+      sc = full >> 8;
       if (c=='\b'){
          if (counter>0) counter--; 
          interrupt(0x10,0xE00+'\b',0,0,0);
