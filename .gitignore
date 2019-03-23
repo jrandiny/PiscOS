@@ -1,3 +1,4 @@
 *.o
 bochsout.txt
 .vscode
+build/
