@@ -11,7 +11,7 @@ int main(){
     char name[MAX_FILENAME];
     char directoris[SECTOR_SIZE];
     char files[SECTOR_SIZE];
-    int curDir;
+    char curDir;
     int i;
 
     interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
