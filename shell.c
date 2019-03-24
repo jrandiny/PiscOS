@@ -34,10 +34,10 @@ int mod(int a, int b);
 int div(int a, int b);
 
 int main(){
-   char tempDir;
+   int tempDir;
    int nextIdx;
    int length;
-   int dirIdx;
+   char dirIdx;
    int i;
    int result;
    char curDir=ROOT;
@@ -214,9 +214,9 @@ void finder(char* name,char* dir, char parent,int* idx){
    if(!found){
       *idx=NOT_FOUND;
    }
-   // intToChar(*idx,tempangka);
-   // printString("idx ketemu=");
-   // printStringe(tempangka);
+   intToChar(*idx,tempangka);
+   printString("idx ketemu=");
+   printStringe(tempangka);
 }
 
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]){
