@@ -22,31 +22,31 @@ void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT]
 void stringConcat(char *first, char *second, char *out);
 void stringCopy(char* in, char* out, int start, int length);
 int stringCompare(char* a, char* b, int length);
-void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
-void finder(char* name,char* dir, int parent,int* idx);
+void pathParser(char *path, char *fileName, char* dirIndex, char parentIndex);
+void finder(char* name,char* dir, char parent,int* idx);
 int stringLen(char* in);
 void splitString(char *s, char delim, int start, int* end);
 void printStringe(char *string);
-void findParent(char* dirName,char* directories, int* parentIdx);
+void findParent(char* dirName,char* directories, char* parentIdx);
 
 void intToChar(int angka, char* hasil);
 int mod(int a, int b);
 int div(int a, int b);
 
 int main(){
-   int tempDir;
+   char tempDir;
    int nextIdx;
    int length;
    int dirIdx;
    int i;
    int result;
-   int curDir=ROOT;
+   char curDir=ROOT;
    char pathNow[MAX_PATHNAME];
    char argc;
    char *argv[50];
    char dirName[MAX_FILENAME];
    char tempName[MAX_PATHNAME];
-   char directories[MAX_SECTORS];
+   char directories[SECTOR_SIZE];
    char input[MAX_PATHNAME];
    char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH];
    ///////////
@@ -148,7 +148,7 @@ void printString(char *string){//tanpa enter
    }
 }
 
-void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
+void pathParser(char *path, char *fileName, char* dirIndex, char parentIndex){
    char parentTemp;
    char dirs[SECTOR_SIZE];
    char dirSearch[MAX_DIRECTORYNAME];
@@ -197,7 +197,7 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    stringCopy(path,fileName,lastEnd,temp+1);
 }
 
-void finder(char* name,char* dir, int parent,int* idx){
+void finder(char* name,char* dir, char parent,int* idx){
    int found=0;
    char temp[MAX_DIRECTORYNAME];
    char tempangka[20];
@@ -373,6 +373,7 @@ void intToChar(int angka, char* hasil){
       hasil[panjang-i]=tempHasil[i-1];
       i--;
     }
+    hasil[panjang] = '\0';
   }  
 }
 
@@ -391,11 +392,12 @@ int div(int a, int b) {
   return q-1;
 }
 
-void findParent(char* dirName,char* directories, int* parentIdx){
+void findParent(char* dirName,char* directories, char* parentIdx){
    int found=0;
    int i=0;
    char tempangka[20];
    char temp[MAX_DIRECTORYNAME];
+   char tempDir;
 
    while(!found){
       intToChar(i,tempangka);
@@ -412,14 +414,16 @@ void findParent(char* dirName,char* directories, int* parentIdx){
       }
    }
 
+
    intToChar(i,tempangka);
    printString("i found =");
    printStringe(tempangka);
+   
 
    if (found) {
       // printStringe("found");
-      *parentIdx=directories[i*DIR_ENTRY_LENGTH];
-      intToChar(*parentIdx,tempangka);
+      (*parentIdx)=directories[i*DIR_ENTRY_LENGTH];
+      intToChar((*parentIdx),tempangka);
       printString("parentidx jadi =");
       printStringe(tempangka);
    }else{
