@@ -84,25 +84,25 @@ int main(){
             }else{ //masuk
                pathParser(concatedInput[1],dirName,&dirIdx,curDir);
                if(dirIdx!=NOT_FOUND){
-                     finder(dirName,directories,dirIdx,&tempDir);
-                     if(tempDir!=NOT_FOUND){
-                        curDir=tempDir;
-                        // intToChar(tempDir,tempangka);
-                        // printString("tempDir=");
-                        // printStringe(tempangka);
-                        
-                        // printString("pathnow sebelum concat=");
-                        // printStringe(pathNow);
-                        // printString("akan diconcat dengan=");
-                        // printStringe(concatedInput[1]);
+                  finder(dirName,directories,dirIdx,&tempDir);
+                  if(tempDir!=NOT_FOUND){
+                     curDir=tempDir;
+                     // intToChar(tempDir,tempangka);
+                     // printString("tempDir=");
+                     // printStringe(tempangka);
+                     
+                     // printString("pathnow sebelum concat=");
+                     // printStringe(pathNow);
+                     // printString("akan diconcat dengan=");
+                     // printStringe(concatedInput[1]);
 
-                        stringConcat(pathNow,"/",tempName);
-                        stringConcat(tempName,concatedInput[1],pathNow);
-                        // printString("pathnow sesudah concat=");
-                        // printStringe(pathNow);
-                     }else{
-                        printString("No such file or directory\n\r");
-                     }
+                     stringConcat(pathNow,"/",tempName);
+                     stringConcat(tempName,concatedInput[1],pathNow);
+                     // printString("pathnow sesudah concat=");
+                     // printStringe(pathNow);
+                  }else{
+                     printString("No such file or directory\n\r");
+                  }
                }else{
                   printString("No such file or directory\n\r");
                }
@@ -130,8 +130,8 @@ int main(){
          for(i=1;i<=argc;i++){
             argv[i-1]=concatedInput[i];
          }
-         interrupt(0x21,0x20,curDir,argc,argv);
-         interrupt(0x21,0xFF<<8|0x6,concatedInput[0],0x2000,&result);
+         interrupt(0x21,0x20,curDir,argc,argv); // putArgs
+         interrupt(0x21,0xFF<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
          if(result!=0){
             printString("No program found\n\r");
          }
@@ -178,11 +178,9 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
          found = 0;
          *dirIndex = 0;
          while((*dirIndex)<MAX_DIRECTORY && !found){
-            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME)){
-               if(dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp){
-                  found = 1;
-                  parentTemp = (*dirIndex);
-               }
+            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
+               found = 1;
+               parentTemp = (*dirIndex);
             }else{
                (*dirIndex)++;
             }

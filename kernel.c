@@ -236,11 +236,9 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
          found = 0;
          *dirIndex = 0;
          while((*dirIndex)<MAX_DIRECTORY && !found){
-            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME)){
-               if(dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp){
-                  found = 1;
-                  parentTemp = (*dirIndex);
-               }
+            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
+               found = 1;
+               parentTemp = (*dirIndex);
             }else{
                (*dirIndex)++;
             }
