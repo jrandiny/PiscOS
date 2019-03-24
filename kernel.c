@@ -52,6 +52,8 @@ void clearScreen(int height);
 void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
 void finder(char* name,char* dir, int parent,int* idx);
 
+void intToChar(int angka, char* hasil);
+
 int main() {
    char tempFile[SECTOR_SIZE*MAX_SECTORS];
    int suc = 0;
@@ -65,30 +67,56 @@ int main() {
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
 
+   // printString("belum while");
    while (1){
-      readFile(tempFile,"title.txt",&suc,0xff);
-      suc = 1;
+      // printString("mulai");
+      // interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &suc);
+      // if(suc!=0){
+         // printString("shell fail");
+      // }
+   //    readFile(tempFile,"title.txt",&suc,0xff);
+   //    suc = 1;
+      
       makeDirectory("abc",&suc,0xff);
-      makeDirectory("abc/josh",&suc,0xff);
-      makeDirectory("abc/josh",&suc,0xff);
+      makeDirectory("bbb",&suc,0xff);
 
-      if(suc==ALREADY_EXISTS){
-         suc =1;
-         writeFile(tempFile,"abc/josh/a.txt",&suc,0xff);
-         suc =1;
-         writeFile(tempFile,"abc/a.txt",&suc,0xff);
-         suc =1;
-         writeFile(tempFile,"a.txt",&suc,0xff);
-         printString("expected 3 file");
-         readString(&tempFile);
-         deleteFile("a.txt",&suc,0xff);
-         if(suc==0){
-            deleteDirectory("abc",&suc,0xff);
-            printString("kalimat di bawah ini salah");
-         }
-      }
-      printString("gagal beneran nih");
-      while(1){}
+      makeDirectory("ccc",&suc,0xff);
+      makeDirectory("abc/jjj1",&suc,0xff);
+      makeDirectory("bbb/jjj2",&suc,0xff);
+      makeDirectory("ccc/jjj3",&suc,0xff);
+      
+
+      makeDirectory("ccc/jjj3/222",&suc,0xff);
+
+      makeDirectory("ccc/jjj3/222/333",&suc,0xff);
+      terminateProgram(&suc);
+
+      // if(suc==0){
+      //    suc =1;
+      // writeFile(tempFile,"abc/josh/josh2/a.txt",&suc,0xff);
+      // if(suc==0){
+      //    printString("malah berhasil");
+      // }else{
+      //    printString("gagal diinginkan");
+      // }
+      //    suc =1;
+      //    writeFile(tempFile,"abc/josh/a.txt",&suc,0xff);
+      //    suc =1;
+      //    writeFile(tempFile,"abc/a.txt",&suc,0xff);
+      //    suc =1;
+         // writeFile(tempFile,"a.txt",&suc,0xff);
+      //    printString("expected 4 file");
+         // readString(&tempFile);
+         // deleteFile("a.txt",&suc,0xff);
+      //    if(suc==0){
+      //       deleteDirectory("abc",&suc,0xff);
+      //       printString("kalimat di bawah ini salah");
+      //    }
+      // }
+      // printString("gagal beneran nih");
+      // readString(&tempFile);
+         
+   //    while(1){}
    }
 }
 
@@ -182,7 +210,6 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    char parentTemp;
    char dirs[SECTOR_SIZE];
    char dirSearch[MAX_DIRECTORYNAME];
-   // char tempOut[512];
    int pathLength;
    int filePart;
    int lastEnd;
@@ -416,10 +443,12 @@ void readString(char *string){
       c = full & 0xff;
       sc = full >> 8;
       if (c=='\b'){
-         if (counter>0) counter--; 
-         interrupt(0x10,0xE00+'\b',0,0,0);
-         interrupt(0x10,0xE00+'\0',0,0,0);
-         interrupt(0x10,0xE00+'\b',0,0,0);
+         if (counter>0) {
+            counter--; 
+            interrupt(0x10,0xE00+'\b',0,0,0);
+            interrupt(0x10,0xE00+'\0',0,0,0);
+            interrupt(0x10,0xE00+'\b',0,0,0);
+         }
       }else if(c!='\r'){
          interrupt(0x10,0xE00+c,0,0,0);
          buffer[counter] = c;
@@ -565,7 +594,7 @@ void makeDirectory(char *path, int *result, char parentIndex){
    dirIdx=0;
    
    while(dirIdx<MAX_FILESYSTEM_ITEM && !emptyFound){
-      if(*(directories+dirIdx*DIR_ENTRY_LENGTH)==EMPTY){
+      if(directories[dirIdx*DIR_ENTRY_LENGTH]==EMPTY&&directories[dirIdx*DIR_ENTRY_LENGTH+1]=='\0'){
          emptyFound=1;
       } else {
          dirIdx++;
@@ -660,6 +689,7 @@ void deleteFile(char *path, int *result, char parentIndex){
      *result = NOT_FOUND;
       return;
    }
+
    finder(filename,files,dirIdx,&fileIdx);
 
    if(fileIdx!=NOT_FOUND){

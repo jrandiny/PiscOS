@@ -10,8 +10,9 @@ int main(){
     int k;
 
     interrupt(0x21,0x22,&n,0,0); // ambil argc
-    for(i=0;i<n;i++){ // copy semua isi argv ke temp
+    for(i=0;i<n;++i){ // copy semua isi argv ke temp
         interrupt(0x21,0x23,i,temp[i],0);
+        
     }
     i=0;
     j=0;
