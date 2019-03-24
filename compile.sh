@@ -22,7 +22,7 @@ bcc -ansi -c -o shell.o ../shell.c
 ld86 -o echo -d echo.o lib_asm.o
 ld86 -o mkdir -d mkdir.o lib_asm.o
 ld86 -o ls -d ls.o lib_asm.o
-ld86 -o shell -d shell.o lib_asm.o
+ld86 -o shell -d shell.o lib_asm.o string.o
 gcc ../loadFile.c -o loadFile -w
 ./loadFile echo
 ./loadFile mkdir

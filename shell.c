@@ -17,15 +17,15 @@
 #define ROOT 0xff
 
 void printString(char *string);
-void stringPlace(char *in,char *out);
+// void stringPlace(char *in,char *out);
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]);
-void stringConcat(char *first, char *second, char *out);
-void stringCopy(char* in, char* out, int start, int length);
-int stringCompare(char* a, char* b, int length);
-void pathParser(char *path, char *fileName, char* dirIndex, char parentIndex);
-void finder(char* name,char* dir, char parent,int* idx);
-int stringLen(char* in);
-void splitString(char *s, char delim, int start, int* end);
+// void stringConcat(char *first, char *second, char *out);
+// void stringCopy(char* in, char* out, int start, int length);
+// int stringCompare(char* a, char* b, int length);
+void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex);
+void finder(char* name,char* dir, int parent,int* idx);
+// int stringLen(char* in);
+// void splitString(char *s, char delim, int start, int* end);
 void printStringe(char *string);
 void findParent(char* dirName,char* directories, char* parentIdx);
 
@@ -96,8 +96,8 @@ int main(){
                      // printString("akan diconcat dengan=");
                      // printStringe(concatedInput[1]);
 
-                     stringConcat(pathNow,"/",tempName);
-                     stringConcat(tempName,concatedInput[1],pathNow);
+                     stringConcat(pathNow,"/",tempName,MAX_STRINGLENGTH);
+                     stringConcat(tempName,concatedInput[1],pathNow,MAX_STRINGLENGTH);
                      // printString("pathnow sesudah concat=");
                      // printStringe(pathNow);
                   }else{
@@ -148,7 +148,7 @@ void printString(char *string){//tanpa enter
    }
 }
 
-void pathParser(char *path, char *fileName, char* dirIndex, char parentIndex){
+void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex){
    char parentTemp;
    char dirs[SECTOR_SIZE];
    char dirSearch[MAX_DIRECTORYNAME];
@@ -197,7 +197,7 @@ void pathParser(char *path, char *fileName, char* dirIndex, char parentIndex){
    stringCopy(path,fileName,lastEnd,temp+1);
 }
 
-void finder(char* name,char* dir, char parent,int* idx){
+void finder(char* name,char* dir, int parent,int* idx){
    int found=0;
    char temp[MAX_DIRECTORYNAME];
    char tempangka[20];
@@ -240,97 +240,97 @@ void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT]
     *length=idxResult;
 }
 
-void stringPlace(char *in,char *out){
-    int i;
+// void stringPlace(char *in,char *out){
+//     int i;
 
-    i=0;
-    while(in[i]!='\0'){
-        out[i]=in[i];
-        i++;
-    }
-    out[i]='\0';
-}
+//     i=0;
+//     while(in[i]!='\0'){
+//         out[i]=in[i];
+//         i++;
+//     }
+//     out[i]='\0';
+// }
 
 
-void stringConcat(char *first, char *second, char *out){
-   int i;
-   int j;
+// void stringConcat(char *first, char *second, char *out){
+//    int i;
+//    int j;
    
-   for(i=0;i<MAX_STRINGLENGTH;i++){
-      out[i]='\0';
-   }
+//    for(i=0;i<MAX_STRINGLENGTH;i++){
+//       out[i]='\0';
+//    }
 
-   i=0;
-   j=0;
-   while(first[i]!='\0'){
-      out[j]=first[i];
-      j++;
-      i++;
-   }
-   i=0;
-   while(second[i]!='\0'){
-      out[j]=second[i];
-      j++;
-      i++;
-   }
-   j++; // tambah \0 di akhir
-   out[j] ='\0';    
-}
+//    i=0;
+//    j=0;
+//    while(first[i]!='\0'){
+//       out[j]=first[i];
+//       j++;
+//       i++;
+//    }
+//    i=0;
+//    while(second[i]!='\0'){
+//       out[j]=second[i];
+//       j++;
+//       i++;
+//    }
+//    j++; // tambah \0 di akhir
+//    out[j] ='\0';    
+// }
 
-void stringCopy(char* in, char* out, int start, int length){
-    int index = start;
-    int outIndex = 0;
+// void stringCopy(char* in, char* out, int start, int length){
+//     int index = start;
+//     int outIndex = 0;
 
-    while(outIndex<length && in[index]!='\0'){
-        out[outIndex] = in[index];
-        index++;
-        outIndex++;
-    }
-    out[outIndex] = '\0';
-}
+//     while(outIndex<length && in[index]!='\0'){
+//         out[outIndex] = in[index];
+//         index++;
+//         outIndex++;
+//     }
+//     out[outIndex] = '\0';
+// }
 
-int stringCompare(char* a, char* b, int length){
-    int isSame = 1;
-    int index = 0;
+// int stringCompare(char* a, char* b, int length){
+//     int isSame = 1;
+//     int index = 0;
 
-    length -= 1;
+//     length -= 1;
 
-    while(a[index]!='\0' && b[index]!='\0' && isSame && index<length){
-        if(a[index] != b[index]){
-            isSame = 0;
-        }else{
-            index++;
-        }
-    }
+//     while(a[index]!='\0' && b[index]!='\0' && isSame && index<length){
+//         if(a[index] != b[index]){
+//             isSame = 0;
+//         }else{
+//             index++;
+//         }
+//     }
 
-    if(a[index] != b[index]){
-        isSame = 0;
-    }
+//     if(a[index] != b[index]){
+//         isSame = 0;
+//     }
 
-    return isSame;
-}
+//     return isSame;
+// }
 
-void splitString(char *s, char delim, int start, int* end){
-    int idxString=start;
-    int found =0;
-    while(!found){
-        if(s[idxString]==delim || s[idxString]=='\0'){
-            idxString--;
-            found=1;
-        }else {
-            idxString++;
-        }
-    }
-    *end=idxString;
-}
+// void splitString(char *s, char delim, int start, int* end){
+//     int idxString=start;
+//     int found =0;
+//     while(!found){
+//         if(s[idxString]==delim || s[idxString]=='\0'){
+//             idxString--;
+//             found=1;
+//         }else {
+//             idxString++;
+//         }
+//     }
+//     *end=idxString;
+// }
 
-int stringLen(char* in){
-    int index = 0;
-    while(in[index]!='\0'){
-        index++;
-    }
-    return index;
-}
+// int stringLen(char* in){
+//     int index = 0;
+//     while(in[index]!='\0'){
+//         index++;
+//     }
+//     return index;
+// }
 
 void printStringe(char *string){
    int i =0;
