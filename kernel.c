@@ -20,6 +20,7 @@
 #define NOT_FOUND -1
 #define EMPTY 0x00
 #define USED 0xFF
+#define ROOT 0xFF
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 // String syscall
@@ -56,6 +57,7 @@ void intToChar(int angka, char* hasil);
 
 int main() {
    char tempFile[SECTOR_SIZE*MAX_SECTORS];
+   char *argv[2];
    int suc = 0;
    int i;
 
@@ -77,19 +79,23 @@ int main() {
    //    readFile(tempFile,"title.txt",&suc,0xff);
    //    suc = 1;
       
-      makeDirectory("abc",&suc,0xff);
-      makeDirectory("bbb",&suc,0xff);
+      makeDirectory("abc",&suc,ROOT);
+      makeDirectory("bbb",&suc,ROOT);
 
-      makeDirectory("ccc",&suc,0xff);
-      makeDirectory("abc/jjj1",&suc,0xff);
-      makeDirectory("bbb/jjj2",&suc,0xff);
-      makeDirectory("ccc/jjj3",&suc,0xff);
+      makeDirectory("ccc",&suc,ROOT);
+      makeDirectory("abc/jjj1",&suc,ROOT);
+      makeDirectory("bbb/jjj2",&suc,ROOT);
+      makeDirectory("ccc/jjj3",&suc,ROOT);
       
 
-      makeDirectory("ccc/jjj3/222",&suc,0xff);
+      makeDirectory("ccc/jjj3/222",&suc,ROOT);
 
-      makeDirectory("ccc/jjj3/222/333",&suc,0xff);
-      terminateProgram(&suc);
+      makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
+      argv[0]="test";
+      // argv[1]="aaadfa";
+      putArgs(ROOT,1,argv);
+      executeProgram("shell",0x2000,&suc,ROOT);
+      // terminateProgram(&suc);
 
       // if(suc==0){
       //    suc =1;
@@ -571,7 +577,7 @@ void getArgv (char index, char *argv) {
             break;
          }
          else {
-         ++i;
+            ++i;
          }
       }
    }

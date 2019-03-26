@@ -23,11 +23,12 @@ void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT]
 // void stringCopy(char* in, char* out, int start, int length);
 // int stringCompare(char* a, char* b, int length);
 void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex);
-void finder(char* name,char* dir, int parent,int* idx);
+void finder(char* name,char* dir, char parent,int* idx);
 // int stringLen(char* in);
 // void splitString(char *s, char delim, int start, int* end);
 void printStringe(char *string);
 void findParent(char* dirName,char* directories, char* parentIdx);
+// void executeProgram(char** concatedInput, int argc, char* pathNow, char curDir);
 
 void intToChar(int angka, char* hasil);
 int mod(int a, int b);
@@ -40,7 +41,7 @@ int main(){
    char dirIdx;
    int i;
    int result;
-   char curDir=ROOT;
+   char curDir;
    char pathNow[MAX_PATHNAME];
    char argc;
    char *argv[50];
@@ -53,7 +54,9 @@ int main(){
    char tempangka[20];
    int found;
    
-   pathNow[0]='\0';
+   // pathNow[0]='\0';
+   interrupt(0x21,0x23,0,pathNow,0); // getArgv
+   interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
    while(1){
       interrupt(0x21,0x02,directories,DIRS_SECTOR,0); // readSector directori
       intToChar(curDir,tempangka);
@@ -126,9 +129,10 @@ int main(){
             printString("No program found\n\r");
          }
       }else{ // run program dari root
-         argc=length-1;
-         for(i=1;i<=argc;i++){
-            argv[i-1]=concatedInput[i];
+         argc=length;
+         argv[0]=pathNow;
+         for(i=1;i<argc;i++){
+            argv[i]=concatedInput[i];
          }
          interrupt(0x21,0x20,curDir,argc,argv); // putArgs
          interrupt(0x21,0xFF<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
@@ -197,7 +201,7 @@ void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex){
    stringCopy(path,fileName,lastEnd,temp+1);
 }
 
-void finder(char* name,char* dir, int parent,int* idx){
+void finder(char* name,char* dir, char parent,int* idx){
    int found=0;
    char temp[MAX_DIRECTORYNAME];
    char tempangka[20];
@@ -431,3 +435,22 @@ void findParent(char* dirName,char* directories, char* parentIdx){
    }
 
 }
+
+// void executeProgram(char** concatedInput, int argc, char* pathNow, char curDir){
+//    char* argv[50];
+//    int result;
+//    int i;
+
+//    printString("exe\n\r");
+//    printString(concatedInput[0]);
+//    printString("exe2\n\r");
+//    argv[0]=pathNow;
+//    for(i=1;i<argc;i++){
+//       argv[i]=concatedInput[i];
+//    }
+//    interrupt(0x21,0x20,curDir,argc+1,argv); // putArgs
+//    interrupt(0x21,curDir<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
+//    if(result!=0){
+//       printString("No program found\n\r");
+//    }
+// }
