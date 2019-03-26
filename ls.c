@@ -5,7 +5,7 @@
 #define MAX_FILESYSTEM_ITEM 32
 #define DIR_ENTRY_LENGTH 16
 
-void stringCopy(char* in, char* out, int start, int length);
+// void stringCopy(char* in, char* out, int start, int length);
 
 int main(){
     char name[MAX_FILENAME];
@@ -33,14 +33,14 @@ int main(){
     return 0;
 }
 
-void stringCopy(char* in, char* out, int start, int length){
-    int index = start;
-    int outIndex = 0;
+// void stringCopy(char* in, char* out, int start, int length){
+//     int index = start;
+//     int outIndex = 0;
 
-    while(outIndex<length && in[index]!='\0'){
-        out[outIndex] = in[index];
-        index++;
-        outIndex++;
-    }
-    out[outIndex] = '\0';
-}
+//     while(outIndex<length && in[index]!='\0'){
+//         out[outIndex] = in[index];
+//         index++;
+//         outIndex++;
+//     }
+//     out[outIndex] = '\0';
+// }

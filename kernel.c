@@ -71,13 +71,6 @@ int main() {
 
    // printString("belum while");
    while (1){
-      // printString("mulai");
-      // interrupt(0x21, 0xFF << 8 | 0x6, "shell", 0x2000, &suc);
-      // if(suc!=0){
-         // printString("shell fail");
-      // }
-   //    readFile(tempFile,"title.txt",&suc,0xff);
-   //    suc = 1;
       
       makeDirectory("abc",&suc,ROOT);
       makeDirectory("bbb",&suc,ROOT);
@@ -92,37 +85,8 @@ int main() {
 
       makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
       argv[0]="test";
-      // argv[1]="aaadfa";
       putArgs(ROOT,1,argv);
       executeProgram("shell",0x2000,&suc,ROOT);
-      // terminateProgram(&suc);
-
-      // if(suc==0){
-      //    suc =1;
-      // writeFile(tempFile,"abc/josh/josh2/a.txt",&suc,0xff);
-      // if(suc==0){
-      //    printString("malah berhasil");
-      // }else{
-      //    printString("gagal diinginkan");
-      // }
-      //    suc =1;
-      //    writeFile(tempFile,"abc/josh/a.txt",&suc,0xff);
-      //    suc =1;
-      //    writeFile(tempFile,"abc/a.txt",&suc,0xff);
-      //    suc =1;
-         // writeFile(tempFile,"a.txt",&suc,0xff);
-      //    printString("expected 4 file");
-         // readString(&tempFile);
-         // deleteFile("a.txt",&suc,0xff);
-      //    if(suc==0){
-      //       deleteDirectory("abc",&suc,0xff);
-      //       printString("kalimat di bawah ini salah");
-      //    }
-      // }
-      // printString("gagal beneran nih");
-      // readString(&tempFile);
-         
-   //    while(1){}
    }
 }
 

@@ -72,10 +72,6 @@ int main(){
                   stringCopy(pathNow,tempName,0,i);
                   stringCopy(pathNow,dirName,i+1,MAX_DIRECTORYNAME);
                   stringPlace(tempName,pathNow);
-                  printString("   path jadi:");
-                  printStringe(pathNow);
-                  printString("   yang dicari jadi:");
-                  printStringe(dirName);
                   findParent(dirName,directories,&curDir);
                }
             }else{ //masuk
@@ -183,9 +179,6 @@ void finder(char* name,char* dir, char parent,int* idx){
    if(!found){
       *idx=NOT_FOUND;
    }
-   intToChar(*idx,tempangka);
-   printString("idx ketemu=");
-   printStringe(tempangka);
 }
 
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]){
@@ -277,32 +270,18 @@ void findParent(char* dirName,char* directories, char* parentIdx){
    char tempDir;
 
    while(!found){
-      intToChar(i,tempangka);
-      printString("i compare =");
-      printStringe(tempangka);
-      printString("comparing ");
       stringCopy(directories+(i)*DIR_ENTRY_LENGTH+1,temp,0,MAX_DIRECTORYNAME);
-      printStringe(temp);
       
       if(stringCompare(directories+DIR_ENTRY_LENGTH*i+1,dirName,MAX_DIRECTORYNAME)){
          found=1;
       }else{
          i++;
       }
-   }
-
-
-   intToChar(i,tempangka);
-   printString("i found =");
-   printStringe(tempangka);
-   
+   }   
 
    if (found) {
       // printStringe("found");
       (*parentIdx)=directories[i*DIR_ENTRY_LENGTH];
-      intToChar((*parentIdx),tempangka);
-      printString("parentidx jadi =");
-      printStringe(tempangka);
    }else{
       *parentIdx=NOT_FOUND;
    }
