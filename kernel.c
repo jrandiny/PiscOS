@@ -14,7 +14,7 @@
 #define SECTORS_SECTOR 259
 #define TRUE 1
 #define FALSE 0
-#define INSUFFICIENT_SECTORS 0
+#define INSUFFICIENT_SECTORS -4
 #define INSUFFICIENT_ENTRIES -3
 #define ALREADY_EXISTS -2
 #define NOT_FOUND -1
@@ -250,8 +250,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    char dirSearch[MAX_DIRECTORYNAME];
    char fileName[MAX_FILENAME];
 
-   char temp22[3];
-
    char sectorBuffer[SECTOR_SIZE];
    int fileIndex;
    int found;
@@ -392,6 +390,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
 void printString(char *string){
    int i =0;
    while(string[i]!='\0'){
+      if(string[i]=='\n'){
+         interrupt(0x10,0xE00+'\r',0,0,0);
+      }
       interrupt(0x10,0xE00+string[i],0,1,0);
       i++;
    }
@@ -666,8 +667,10 @@ void deleteFile(char *path, int *result, char parentIndex){
          files[fileIdx*DIR_ENTRY_LENGTH+i+1]=EMPTY;
       }
       for(i=0;i<MAX_SECTORS;i++){
-         map[*(sectors+fileIdx*DIR_ENTRY_LENGTH+i)]=EMPTY;
-         *(sectors+fileIdx*DIR_ENTRY_LENGTH+i)=EMPTY;
+         if(*(sectors+fileIdx*DIR_ENTRY_LENGTH+i) != '\0'){
+            map[*(sectors+fileIdx*DIR_ENTRY_LENGTH+i)]=EMPTY;
+            *(sectors+fileIdx*DIR_ENTRY_LENGTH+i)=EMPTY;
+         }
       }
       
       writeSector(files,FILES_SECTOR);
