@@ -17,18 +17,12 @@
 #define ROOT 0xff
 
 void printString(char *string);
-// void stringPlace(char *in,char *out);
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]);
-// void stringConcat(char *first, char *second, char *out);
-// void stringCopy(char* in, char* out, int start, int length);
-// int stringCompare(char* a, char* b, int length);
 void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex);
 void finder(char* name,char* dir, char parent,int* idx);
-// int stringLen(char* in);
-// void splitString(char *s, char delim, int start, int* end);
 void printStringe(char *string);
 void findParent(char* dirName,char* directories, char* parentIdx);
-// void executeProgram(char** concatedInput, int argc, char* pathNow, char curDir);
+void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], int argc, char* pathNow, int curDir);
 
 void intToChar(int angka, char* hasil);
 int mod(int a, int b);
@@ -90,19 +84,8 @@ int main(){
                   finder(dirName,directories,dirIdx,&tempDir);
                   if(tempDir!=NOT_FOUND){
                      curDir=tempDir;
-                     // intToChar(tempDir,tempangka);
-                     // printString("tempDir=");
-                     // printStringe(tempangka);
-                     
-                     // printString("pathnow sebelum concat=");
-                     // printStringe(pathNow);
-                     // printString("akan diconcat dengan=");
-                     // printStringe(concatedInput[1]);
-
                      stringConcat(pathNow,"/",tempName,MAX_STRINGLENGTH);
                      stringConcat(tempName,concatedInput[1],pathNow,MAX_STRINGLENGTH);
-                     // printString("pathnow sesudah concat=");
-                     // printStringe(pathNow);
                   }else{
                      printString("No such file or directory\n\r");
                   }
@@ -114,31 +97,15 @@ int main(){
             printString("Usage: cd <dir_name>\n\r");
          }
       }else if(stringCompare(concatedInput[0], "./",2)){ // run program dari currDir
-         argc=length-1;
-         for(i=1;i<=argc;i++){
-            argv[i-1]=concatedInput[i];
-         }
          length=stringLen(concatedInput[0]);
          for(i=0;i<length-2;i++){
             concatedInput[0][i]=concatedInput[0][i+2];
          }
          concatedInput[0][length-2]='\0';
-         interrupt(0x21,0x20,curDir,argc,argv);
-         interrupt(0x21,curDir<<8|0x6,concatedInput[0],0x2000,&result);
-         if(result!=0){
-            printString("No program found\n\r");
-         }
+
+         executeProgram(concatedInput, length, pathNow, curDir<<8 | curDir);
       }else{ // run program dari root
-         argc=length;
-         argv[0]=pathNow;
-         for(i=1;i<argc;i++){
-            argv[i]=concatedInput[i];
-         }
-         interrupt(0x21,0x20,curDir,argc,argv); // putArgs
-         interrupt(0x21,0xFF<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
-         if(result!=0){
-            printString("No program found\n\r");
-         }
+         executeProgram(concatedInput, length, pathNow, curDir<<8|0xFF);
       }
       printString("\n\r");
    }
@@ -207,8 +174,6 @@ void finder(char* name,char* dir, char parent,int* idx){
    char tempangka[20];
    *idx=0;
    while((*idx)<MAX_FILESYSTEM_ITEM && !found){
-      // stringCopy(dir+(*idx)*DIR_ENTRY_LENGTH+1,temp,0,MAX_DIRECTORYNAME);
-      // printStringe(temp);
       if(stringCompare(name,dir+(*idx)*DIR_ENTRY_LENGTH+1,MAX_FILENAME)&&dir[(*idx)*DIR_ENTRY_LENGTH]==parent){
          found = 1;
       }else{
@@ -224,117 +189,25 @@ void finder(char* name,char* dir, char parent,int* idx){
 }
 
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]){
-    int idxString=0;
-    int lastIdx=0;
-    int idxResult=0;
-    int end = 0;
-    while(!end){
-        if(s[idxString]==delim){
-            stringCopy(s,result[idxResult],lastIdx,idxString-lastIdx);
-            lastIdx=idxString+1;
-            idxResult++;
-        }else if (s[idxString]=='\0'){
-            stringCopy(s,result[idxResult],lastIdx,idxString-lastIdx);
-            lastIdx=idxString+1;
-            idxResult++;
-            end=1;
-        }
-        idxString++;
-    }
-    *length=idxResult;
+   int idxString=0;
+   int lastIdx=0;
+   int idxResult=0;
+   int end = 0;
+   while(!end){
+      if(s[idxString]==delim){
+         stringCopy(s,result[idxResult],lastIdx,idxString-lastIdx);
+         lastIdx=idxString+1;
+         idxResult++;
+      }else if (s[idxString]=='\0'){
+         stringCopy(s,result[idxResult],lastIdx,idxString-lastIdx);
+         lastIdx=idxString+1;
+         idxResult++;
+         end=1;
+      }
+      idxString++;
+   }
+   *length=idxResult;
 }
-
-// void stringPlace(char *in,char *out){
-//     int i;
-
-//     i=0;
-//     while(in[i]!='\0'){
-//         out[i]=in[i];
-//         i++;
-//     }
-//     out[i]='\0';
-// }
-
-
-// void stringConcat(char *first, char *second, char *out){
-//    int i;
-//    int j;
-   
-//    for(i=0;i<MAX_STRINGLENGTH;i++){
-//       out[i]='\0';
-//    }
-
-//    i=0;
-//    j=0;
-//    while(first[i]!='\0'){
-//       out[j]=first[i];
-//       j++;
-//       i++;
-//    }
-//    i=0;
-//    while(second[i]!='\0'){
-//       out[j]=second[i];
-//       j++;
-//       i++;
-//    }
-//    j++; // tambah \0 di akhir
-//    out[j] ='\0';    
-// }
-
-// void stringCopy(char* in, char* out, int start, int length){
-//     int index = start;
-//     int outIndex = 0;
-
-//     while(outIndex<length && in[index]!='\0'){
-//         out[outIndex] = in[index];
-//         index++;
-//         outIndex++;
-//     }
-//     out[outIndex] = '\0';
-// }
-
-// int stringCompare(char* a, char* b, int length){
-//     int isSame = 1;
-//     int index = 0;
-
-//     length -= 1;
-
-//     while(a[index]!='\0' && b[index]!='\0' && isSame && index<length){
-//         if(a[index] != b[index]){
-//             isSame = 0;
-//         }else{
-//             index++;
-//         }
-//     }
-
-//     if(a[index] != b[index]){
-//         isSame = 0;
-//     }
-
-//     return isSame;
-// }
-
-// void splitString(char *s, char delim, int start, int* end){
-//     int idxString=start;
-//     int found =0;
-//     while(!found){
-//         if(s[idxString]==delim || s[idxString]=='\0'){
-//             idxString--;
-//             found=1;
-//         }else {
-//             idxString++;
-//         }
-//     }
-//     *end=idxString;
-// }
-
-// int stringLen(char* in){
-//     int index = 0;
-//     while(in[index]!='\0'){
-//         index++;
-//     }
-//     return index;
-// }
 
 void printStringe(char *string){
    int i =0;
@@ -347,53 +220,53 @@ void printStringe(char *string){
 }
 
 void intToChar(int angka, char* hasil){
-  char tempHasil[200];
-  int temp;
-  int i=0;
-  int panjang;
+   char tempHasil[200];
+   int temp;
+   int i=0;
+   int panjang;
 
-  if(angka == 0){
-    hasil[0] = '0';
-    hasil[1] = '\0';
-  }else{
-    if(angka<0){
+   if(angka == 0){
+      hasil[0] = '0';
+      hasil[1] = '\0';
+   }else{
+      if(angka<0){
       temp=-1*angka;
-    }else{
+      }else{
       temp=angka;
-    }
-    while(temp>0){
+      }
+      while(temp>0){
       tempHasil[i]=mod(temp,10)+'0';
       temp = div(temp,10);
       i++;
-    }
-    if(angka<0){
+      }
+      if(angka<0){
       tempHasil[i]='-';
       i++;
-    }
+      }
 
-    panjang = i;
+      panjang = i;
 
-    while(i>0){
+      while(i>0){
       hasil[panjang-i]=tempHasil[i-1];
       i--;
-    }
-    hasil[panjang] = '\0';
-  }  
+      }
+      hasil[panjang] = '\0';
+   }  
 }
 
 int mod(int a, int b) {
-  while(a >= b) {
-    a = a - b;
-  }
-  return a;
+   while(a >= b) {
+      a = a - b;
+   }
+   return a;
 }
 
 int div(int a, int b) {
-  int q = 0;
-  while(q*b <= a) {
-    q = q+1;
-  }
-  return q-1;
+   int q = 0;
+   while(q*b <= a) {
+      q = q+1;
+   }
+   return q-1;
 }
 
 void findParent(char* dirName,char* directories, char* parentIdx){
@@ -436,21 +309,18 @@ void findParent(char* dirName,char* directories, char* parentIdx){
 
 }
 
-// void executeProgram(char** concatedInput, int argc, char* pathNow, char curDir){
-//    char* argv[50];
-//    int result;
-//    int i;
+void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], int argc, char* pathNow, int curDir){
+   char* argv[50];
+   int result;
+   int i;
 
-//    printString("exe\n\r");
-//    printString(concatedInput[0]);
-//    printString("exe2\n\r");
-//    argv[0]=pathNow;
-//    for(i=1;i<argc;i++){
-//       argv[i]=concatedInput[i];
-//    }
-//    interrupt(0x21,0x20,curDir,argc+1,argv); // putArgs
-//    interrupt(0x21,curDir<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
-//    if(result!=0){
-//       printString("No program found\n\r");
-//    }
-// }
+   argv[0]=pathNow;
+   for(i=1;i<argc;i++){
+      argv[i]=concatedInput[i];
+   }
+   interrupt(0x21,0x20,((curDir>>8) & 0xFF),argc,argv); // putArgs
+   interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
+   if(result!=0){
+      printString("No program found\n\r");
+   }
+}
