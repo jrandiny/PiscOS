@@ -154,6 +154,8 @@ int main(){
                }
             }
 
+            curDir = tempCurrDir;
+
          }else{
             printString("Usage: cd <dir_name>\n\r");
          }
