@@ -11,13 +11,12 @@ int main(){
 
     interrupt(0x21,0x22,&n,0,0); // ambil argc
     for(i=0;i<n;++i){ // copy semua isi argv ke temp
-        interrupt(0x21,0x23,i,temp[i],0);
-        
+        interrupt(0x21,0x23,i,temp[i],0); 
     }
     i=0;
     j=0;
     k=0;
-    while(i<n){ // saline dari temp ke hasil untuk menjadi string panjang
+    while(i<n){ // salin dari temp ke hasil untuk menjadi string panjang
         while(temp[i][j]!='\0'){
             hasil[k] = temp[i][j];
             j++;
@@ -30,6 +29,7 @@ int main(){
     }
     hasil[k]='\0';
     interrupt(0x21,0,hasil,0,0); // cetak hasilnya ke layar
+    interrupt(0x21,0,"\n",0,0); // cetak hasilnya ke layar
     interrupt(0x21,0x7,0,0,0); // terminateProgram
     return 0;
 }

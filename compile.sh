@@ -21,6 +21,7 @@ bcc -ansi -c -o ls.o ../ls.c
 bcc -ansi -c -o rm.o ../rm.c
 bcc -ansi -c -o cat.o ../cat.c
 bcc -ansi -c -o cp.o ../cp.c
+bcc -ansi -c -o mv.o ../mv.c
 bcc -ansi -c -o shell.o ../shell.c
 ld86 -o echo -d echo.o lib_asm.o
 ld86 -o mkdir -d mkdir.o lib_asm.o
@@ -28,6 +29,7 @@ ld86 -o ls -d ls.o lib_asm.o string.o
 ld86 -o rm -d rm.o lib_asm.o
 ld86 -o cat -d cat.o lib_asm.o string.o
 ld86 -o cp -d cp.o lib_asm.o string.o
+ld86 -o mv -d mv.o lib_asm.o string.o
 ld86 -o shell -d shell.o lib_asm.o string.o
 gcc ../loadFile.c -o loadFile -w
 ./loadFile echo
@@ -36,7 +38,10 @@ gcc ../loadFile.c -o loadFile -w
 ./loadFile rm
 ./loadFile cat
 ./loadFile cp
+./loadFile mv
 ./loadFile shell
+cp ../keyproc2 keyproc2
+./loadFile keyproc2
 cp ../title.txt title.txt
 cp ../logo.txt logo.txt
 ./loadFile logo.txt

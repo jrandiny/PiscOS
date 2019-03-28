@@ -76,11 +76,11 @@ int main() {
    // printString("belum while");
    while (1){
       
-      // makeDirectory("abc",&suc,ROOT);
+      makeDirectory("abc",&suc,ROOT);
       // makeDirectory("bbb",&suc,ROOT);
 
       // makeDirectory("ccc",&suc,ROOT);
-      // makeDirectory("abc/jjj1",&suc,ROOT);
+      makeDirectory("abc/jjj1",&suc,ROOT);
       // makeDirectory("bbb/jjj2",&suc,ROOT);
       // makeDirectory("ccc/jjj3",&suc,ROOT);
       
@@ -88,8 +88,8 @@ int main() {
       // makeDirectory("ccc/jjj3/222",&suc,ROOT);
 
       // makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
-      argv[0]="/";
-      putArgs(ROOT,1,argv);
+      // argv[0]="/";
+      putArgs(ROOT,0,"");
       executeProgram("shell",0x2000,&suc,ROOT);
    }
 }
@@ -412,8 +412,6 @@ void printString(char *string){
       interrupt(0x10,0xE00+string[i],0,1,0);
       i++;
    }
-   interrupt(0x10, 0xE00 + '\n', 0, 1, 0) ;
-   interrupt(0x10, 0xE00 + '\r', 0, 1, 0) ;
 }
 
 void readString(char *string){

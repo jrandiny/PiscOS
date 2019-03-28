@@ -1,9 +1,10 @@
-#define SECTOR_SIZE 512
-#define DIRS_SECTOR 257
-#define FILES_SECTOR 258
-#define MAX_FILENAME 15
-#define MAX_FILESYSTEM_ITEM 32
-#define DIR_ENTRY_LENGTH 16
+#include "definition.h"
+// #define SECTOR_SIZE 512
+// #define DIRS_SECTOR 257
+// #define FILES_SECTOR 258
+// #define MAX_FILENAME 15
+// #define MAX_FILESYSTEM_ITEM 32
+// #define DIR_ENTRY_LENGTH 16
 
 // void stringCopy(char* in, char* out, int start, int length);
 
@@ -21,12 +22,14 @@ int main(){
         if(directoris[i*DIR_ENTRY_LENGTH]==curDir && directoris[i*DIR_ENTRY_LENGTH+1]!='\0'){
             stringCopy(directoris,name,i*DIR_ENTRY_LENGTH+1,MAX_FILENAME);
             interrupt(0x21,0,name,0,0); // cetak namanya ke layar
+            interrupt(0x21,0,"\n",0,0);
         }
     }
     for(i=0;i<MAX_FILESYSTEM_ITEM;i++){
         if(files[i*DIR_ENTRY_LENGTH]==curDir && files[i*DIR_ENTRY_LENGTH+1]!='\0'){
             stringCopy(files,name,i*DIR_ENTRY_LENGTH+1,MAX_FILENAME);
             interrupt(0x21,0,name,0,0); // cetak namanya ke layar
+            interrupt(0x21,0,"\n",0,0);
         }
     }
     interrupt(0x21,0x7,0,0,0); // terminateProgram

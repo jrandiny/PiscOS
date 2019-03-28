@@ -25,3 +25,7 @@
 #define MAX_ELEMENT 35
 #define MAX_STRINGLENGTH 15
 #define MAX_PATHNAME 512
+
+#define boolean unsigned char
+#define true 1
+#define false 0

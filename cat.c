@@ -1,7 +1,8 @@
-#define INSUFFICIENT_SECTORS -4
-#define INSUFFICIENT_ENTRIES -3
-#define ALREADY_EXISTS -2
-#define NOT_FOUND -1
+#include "definition.h"
+// #define INSUFFICIENT_SECTORS -4
+// #define INSUFFICIENT_ENTRIES -3
+// #define ALREADY_EXISTS -2
+// #define NOT_FOUND -1
 
 int main(){
     char argv[128][128];
@@ -27,33 +28,34 @@ int main(){
     // interrupt(0x21,0x00,argv[1],0,0);
     // interrupt(0x21,0x00,argv[2],0,0);
     // interrupt(0x21,0x00,argv[3],0,0);
-    if(argc>2 && stringCompare(argv[2],"-w",2)){
+    if(argc>1 && stringCompare(argv[1],"-w",2)){
         result = 1;
-        interrupt(0x21,currDir<<8|0x05,"abcefghijklmn",argv[1],&result);
+        interrupt(0x21,currDir<<8|0x05,"abcefghijklmn",argv[0],&result);
         if(result==INSUFFICIENT_SECTORS){
-            interrupt(0x21,0x00,"Insufficient sectors",0,0);
+            interrupt(0x21,0x00,"Insufficient sectors\n",0,0);
         }else if(result == NOT_FOUND){
-            interrupt(0x21,0x00,"Not found",0,0);
+            interrupt(0x21,0x00,"Not found\n",0,0);
         }else if(result == ALREADY_EXISTS){
-            interrupt(0x21,0x00,"Already exists",0,0);
+            interrupt(0x21,0x00,"Already exists\n",0,0);
         }else if(result == INSUFFICIENT_ENTRIES){
-            interrupt(0x21,0x00,"Insufficient entries",0,0);
+            interrupt(0x21,0x00,"Insufficient entries\n",0,0);
         }else{
             interrupt(0x21,0x00,"Masukkan teks : ",0,0);
-            interrupt(0x21,0x01,tempData,0,0);
-            interrupt(0x21,currDir<<8|0x09,argv[1],&result,0);
+            interrupt(0x21,0x01,tempData,0,0); //readString
+            interrupt(0x21,currDir<<8|0x09,argv[0],&result,0); //deleteFile
             result = 1;
-            interrupt(0x21,currDir<<8|0x05,tempData,argv[1],&result);
+            interrupt(0x21,currDir<<8|0x05,tempData,argv[0],&result); //writeFile
         }
     }else{
-        interrupt(0x21,currDir<<8 | 0x04,tempFile,argv[1],&result);
+        interrupt(0x21,currDir<<8 | 0x04,tempFile,argv[0],&result);
         if(result==0){
             interrupt(0x21,0x00,tempFile,0,0);
-        }else if(result==-1){
-            interrupt(0x21,0x00,"Not found",0,0);
+            interrupt(0x21,0x00,"\n",0,0);
+        }else if(result==NOT_FOUND){
+            interrupt(0x21,0x00,"Not found\n",0,0);
         }
     }
 
-    interrupt(0x21,0x7,0,0,0); // terminateProgram
+    interrupt(0x21,0x07,0,0,0); // terminateProgram
     return 0;
 }
