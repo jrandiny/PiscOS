@@ -34,6 +34,7 @@ int main(){
    int length;
    char dirIdx;
    int i;
+   int j;
    int result;
    char curDir;
    char pathNow[MAX_PATHNAME];
@@ -44,6 +45,12 @@ int main(){
    char directories[SECTOR_SIZE];
    char input[MAX_PATHNAME];
    char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH];
+   char tempPath[MAX_ELEMENT][MAX_STRINGLENGTH];
+   char tempCurrPath[MAX_ELEMENT][MAX_STRINGLENGTH];
+   int pathPartCount;
+   int currPathPartCount;
+   int tempFindResult;
+   char tempCurrDir;
    ///////////
    char tempangka[20];
    int found;
@@ -63,32 +70,90 @@ int main(){
       splitStringArray(input,' ',&length,concatedInput);//split input
       if(stringCompare(concatedInput[0],"cd",2)){
          if(length==2){
-            if(stringCompare(concatedInput[1],"..",2)){ //balik
-               if(curDir!=ROOT){
-                  i=stringLen(pathNow)-1;
-                  while(pathNow[i]!='/'){
-                     i--;
-                  }
-                  stringCopy(pathNow,tempName,0,i);
-                  stringCopy(pathNow,dirName,i+1,MAX_DIRECTORYNAME);
-                  stringPlace(tempName,pathNow);
-                  findParent(dirName,directories,&curDir);
+            if(concatedInput[1][0]=='/'){
+               printStringe("dbg_root");
+               tempCurrDir = ROOT;
+               splitStringArray(concatedInput[1]+1,'/',&pathPartCount,&tempPath);
+            }else{
+               printStringe("dbg_no_root");
+               tempCurrDir = curDir;
+               
+               splitStringArray(concatedInput[1],'/',&pathPartCount,&tempPath);
+            }
+
+            splitStringArray(pathNow+1,'/',&currPathPartCount,&tempCurrPath);
+
+            if(currPathPartCount==1){
+               printStringe("dbg_count_1");
+            }
+
+            if(tempCurrPath[0][0]=='\0'){
+               
+               printStringe("dbg_curr_root");
+            }
+
+            printStringe("s_dbg");
+            for(i=0;i<currPathPartCount;i++){
+               printStringe("mas");
+               printStringe(tempCurrPath[i]);
+            }
+
+            printStringe("masuk");
+
+            printStringe("e_dbg");
+            
+            for(i=0;i<pathPartCount;i++){
+               printStringe("s_dbg");
+               printStringe(tempPath[i]);
+               // printStringe("dbg_curr_dir");
+               intToChar(tempCurrDir,dirName);
+               // printStringe("out");
+               printStringe(dirName);
+               // printStringe("dbg_curr_pathnow");
+               for(j=0;j<currPathPartCount;j++){
+                  printStringe(tempCurrPath[j]);
                }
-            }else{ //masuk
-               pathParser(concatedInput[1],dirName,&dirIdx,curDir);
-               if(dirIdx!=NOT_FOUND){
-                  finder(dirName,directories,dirIdx,&tempDir);
-                  if(tempDir!=NOT_FOUND){
-                     curDir=tempDir;
-                     stringConcat(pathNow,"/",tempName,MAX_STRINGLENGTH);
-                     stringConcat(tempName,concatedInput[1],pathNow,MAX_STRINGLENGTH);
+
+               printStringe("e_dbg");
+               if(stringCompare(tempPath[i],"..",2)){
+                  printStringe("dbg_up");
+                  // Up directory
+                  if(tempCurrPath[currPathPartCount-1][0]!='\0'){
+                     currPathPartCount--;
+                     printStringe(tempCurrPath[currPathPartCount]);
+                     finder(tempCurrPath[currPathPartCount],directories,directories[tempCurrDir*DIR_ENTRY_LENGTH],&tempFindResult);
+                     
+                     //assert found
+                     if(tempFindResult==NOT_FOUND){
+                        printStringe("dbg_err_not_found");
+                        break;
+                     }
+
+                     tempCurrDir = directories[tempFindResult*DIR_ENTRY_LENGTH];
+
                   }else{
-                     printString("No such file or directory\n\r");
+                     // do nothing
+                     // assert currdir == root
+                     if(curDir!=ROOT){
+                        printStringe("dbg_fatal_not_root");
+                     }
                   }
                }else{
-                  printString("No such file or directory\n\r");
+                  printStringe("dbg_goto");
+                  // Go to
+                  finder(tempPath[i],directories,tempCurrDir,&tempFindResult);
+                  //Assert found
+                  if(tempFindResult==NOT_FOUND){
+                     printStringe("dbg_err_not_found");
+                     break;
+                  }
+                  currPathPartCount++;
+                  stringCopy(tempPath[i],tempCurrPath[currPathPartCount-1],0,MAX_STRINGLENGTH);
+
+                  tempCurrDir = (char)tempFindResult;
                }
             }
+
          }else{
             printString("Usage: cd <dir_name>\n\r");
          }

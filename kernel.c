@@ -86,7 +86,7 @@ int main() {
       makeDirectory("ccc/jjj3/222",&suc,ROOT);
 
       makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
-      argv[0]="test";
+      argv[0]="/";
       putArgs(ROOT,1,argv);
       executeProgram("shell",0x2000,&suc,ROOT);
    }
