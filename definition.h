@@ -23,7 +23,7 @@
 #define ROOT 0xFF
 
 #define MAX_ELEMENT 35
-#define MAX_STRINGLENGTH 15
+#define MAX_STRINGLENGTH 35
 #define MAX_PATHNAME 512
 
 #define boolean unsigned char
