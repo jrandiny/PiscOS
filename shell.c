@@ -1,28 +1,30 @@
 // #include "string.c"
 
-#define MAX_ELEMENT 35
-#define MAX_STRINGLENGTH 15
-#define SECTOR_SIZE 512
-#define MAX_DIRECTORY 32
-#define MAX_FILES 32
-#define MAX_FILESYSTEM_ITEM 32
-#define MAX_DIRECTORYNAME 15
-#define MAX_FILENAME 15
-#define MAX_SECTORS 16
-#define DIR_ENTRY_LENGTH 16
-#define DIRS_SECTOR 257
-#define FILES_SECTOR 258
-#define NOT_FOUND -1
-#define MAX_PATHNAME 512
-#define ROOT 0xff
+#include "definition.h"
+// #define MAX_ELEMENT 35
+// #define MAX_STRINGLENGTH 15
+// #define MAX_PATHNAME 512
+// #define SECTOR_SIZE 512
+// #define MAX_DIRECTORY 32
+// #define MAX_FILES 32
+// #define MAX_FILESYSTEM_ITEM 32
+// #define MAX_DIRECTORYNAME 15
+// #define MAX_FILENAME 15
+// #define MAX_SECTORS 16
+// #define DIR_ENTRY_LENGTH 16
+// #define DIRS_SECTOR 257
+// #define FILES_SECTOR 258
+// #define NOT_FOUND -1
+// #define ROOT 0xff
 
 void printString(char *string);
 void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]);
-void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex);
+// void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex);
 void finder(char* name,char* dir, char parent,int* idx);
 void printStringe(char *string);
 void findParent(char* dirName,char* directories, char* parentIdx);
 void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], int argc, char* pathNow, int curDir);
+void getPathNow(char curDir, char* pathNow);
 
 void intToChar(int angka, char* hasil);
 int mod(int a, int b);
@@ -56,8 +58,9 @@ int main(){
    int found;
    
    // pathNow[0]='\0';
-   interrupt(0x21,0x23,0,pathNow,0); // getArgv
+   // interrupt(0x21,0x23,0,pathNow,0); // getArgv
    interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
+   getPathNow(curDir,pathNow);
    while(1){
       interrupt(0x21,0x02,directories,DIRS_SECTOR,0); // readSector directori
       intToChar(curDir,tempangka);
@@ -155,7 +158,7 @@ int main(){
             }
 
             curDir = tempCurrDir;
-
+            getPathNow(curDir,pathNow);
          }else{
             printString("Usage: cd <dir_name>\n\r");
          }
@@ -182,54 +185,54 @@ void printString(char *string){//tanpa enter
    }
 }
 
-void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex){
-   char parentTemp;
-   char dirs[SECTOR_SIZE];
-   char dirSearch[MAX_DIRECTORYNAME];
-   int pathLength;
-   int filePart;
-   int lastEnd;
-   int temp;
-   int found;
+// void pathParser(char *path, char *fileName, int* dirIndex, char parentIndex){
+//    char parentTemp;
+//    char dirs[SECTOR_SIZE];
+//    char dirSearch[MAX_DIRECTORYNAME];
+//    int pathLength;
+//    int filePart;
+//    int lastEnd;
+//    int temp;
+//    int found;
 
-   parentTemp = parentIndex;
-   pathLength = stringLen(path);
-   filePart = 0;
-   lastEnd = 0;
+//    parentTemp = parentIndex;
+//    pathLength = stringLen(path);
+//    filePart = 0;
+//    lastEnd = 0;
 
-   interrupt(0x21,0x02,dirs,DIRS_SECTOR,0); // readSector directori
+//    interrupt(0x21,0x02,dirs,DIRS_SECTOR,0); // readSector directori
    
-   *dirIndex = parentIndex;
+//    *dirIndex = parentIndex;
 
-   filePart = 0;
-   lastEnd = 0;
-   while(!filePart){
-      splitString(path,'/',lastEnd,&temp);
-      if(temp+1==pathLength){
-         filePart = 1;
-      }else{
-         stringCopy(path,dirSearch,lastEnd,temp-lastEnd+1);
-         found = 0;
-         *dirIndex = 0;
-         while((*dirIndex)<MAX_DIRECTORY && !found){
-            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
-               found = 1;
-               parentTemp = (*dirIndex);
-            }else{
-               (*dirIndex)++;
-            }
-         }   
+//    filePart = 0;
+//    lastEnd = 0;
+//    while(!filePart){
+//       splitString(path,'/',lastEnd,&temp);
+//       if(temp+1==pathLength){
+//          filePart = 1;
+//       }else{
+//          stringCopy(path,dirSearch,lastEnd,temp-lastEnd+1);
+//          found = 0;
+//          *dirIndex = 0;
+//          while((*dirIndex)<MAX_DIRECTORY && !found){
+//             if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
+//                found = 1;
+//                parentTemp = (*dirIndex);
+//             }else{
+//                (*dirIndex)++;
+//             }
+//          }   
 
-         if(found){
-            lastEnd = temp+2;
-         }else{
-            *dirIndex = NOT_FOUND;
-            return;
-         }
-      }
-   }
-   stringCopy(path,fileName,lastEnd,temp+1);
-}
+//          if(found){
+//             lastEnd = temp+2;
+//          }else{
+//             *dirIndex = NOT_FOUND;
+//             return;
+//          }
+//       }
+//    }
+//    stringCopy(path,fileName,lastEnd,temp+1);
+// }
 
 void finder(char* name,char* dir, char parent,int* idx){
    int found=0;
@@ -330,28 +333,29 @@ int div(int a, int b) {
 }
 
 void findParent(char* dirName,char* directories, char* parentIdx){
-   int found=0;
-   int i=0;
-   char tempangka[20];
-   char temp[MAX_DIRECTORYNAME];
-   char tempDir;
+   // int found=0;
+   // int i=0;
+   // char tempangka[20];
+   // char temp[MAX_DIRECTORYNAME];
+   // char tempDir;
 
-   while(!found){
-      stringCopy(directories+(i)*DIR_ENTRY_LENGTH+1,temp,0,MAX_DIRECTORYNAME);
+   // while(!found){
+   //    stringCopy(directories+(i)*DIR_ENTRY_LENGTH+1,temp,0,MAX_DIRECTORYNAME);
       
-      if(stringCompare(directories+DIR_ENTRY_LENGTH*i+1,dirName,MAX_DIRECTORYNAME)){
-         found=1;
-      }else{
-         i++;
-      }
-   }   
+   //    if(stringCompare(directories+DIR_ENTRY_LENGTH*i+1,dirName,MAX_DIRECTORYNAME)){
+   //       found=1;
+   //    }else{
+   //       i++;
+   //    }
+   // }   
 
-   if (found) {
-      // printStringe("found");
-      (*parentIdx)=directories[i*DIR_ENTRY_LENGTH];
-   }else{
-      *parentIdx=NOT_FOUND;
-   }
+   // if (found) {
+   //    // printStringe("found");
+   //    (*parentIdx)=directories[i*DIR_ENTRY_LENGTH];
+   // }else{
+   //    *parentIdx=NOT_FOUND;
+   // }
+   *parentIdx = directories[*parentIdx*DIR_ENTRY_LENGTH];
 
 }
 
@@ -369,4 +373,24 @@ void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], int argc,
    if(result!=0){
       printString("No program found\n\r");
    }
+}
+
+void getPathNow(char curDir, char* pathNow){
+   char directories[SECTOR_SIZE];
+   char tempName[MAX_PATHNAME];
+   char tempPath[MAX_PATHNAME];
+   char dirName[MAX_DIRECTORYNAME];
+   char dirIdx;
+
+   interrupt(0x21,0x2,directories,DIRS_SECTOR,0); // readSector directori
+   dirIdx = curDir;
+   stringCopy("",tempPath,0,1);
+   while(dirIdx!=ROOT){
+      stringCopy(directories,dirName,dirIdx*DIR_ENTRY_LENGTH+1,MAX_DIRECTORYNAME);
+      stringConcat("/",dirName,tempName);
+      stringConcat(tempName,tempPath,pathNow);
+      stringCopy(pathNow,tempPath,0,MAX_PATHNAME);
+      dirIdx = directories[dirIdx*DIR_ENTRY_LENGTH];
+   }
+   if(curDir==ROOT) stringCopy("/",pathNow,0,2);
 }
