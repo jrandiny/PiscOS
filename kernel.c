@@ -1,26 +1,27 @@
-#define ARGS_SECTOR 512
-#define MAX_BYTE 256
-#define SECTOR_SIZE 512
-#define MAX_DIRECTORY 32
-#define MAX_FILES 32
-#define MAX_FILESYSTEM_ITEM 32
-#define MAX_DIRECTORYNAME 15
-#define MAX_FILENAME 15
-#define MAX_SECTORS 16
-#define DIR_ENTRY_LENGTH 16
-#define MAP_SECTOR 256
-#define DIRS_SECTOR 257
-#define FILES_SECTOR 258
-#define SECTORS_SECTOR 259
-#define TRUE 1
-#define FALSE 0
-#define INSUFFICIENT_SECTORS -4
-#define INSUFFICIENT_ENTRIES -3
-#define ALREADY_EXISTS -2
-#define NOT_FOUND -1
-#define EMPTY 0x00
-#define USED 0xFF
-#define ROOT 0xFF
+#include "definition.h"
+// #define ARGS_SECTOR 512
+// #define MAX_BYTE 256
+// #define SECTOR_SIZE 512
+// #define MAX_DIRECTORY 32
+// #define MAX_FILES 32
+// #define MAX_FILESYSTEM_ITEM 32
+// #define MAX_DIRECTORYNAME 15
+// #define MAX_FILENAME 15
+// #define MAX_SECTORS 16
+// #define DIR_ENTRY_LENGTH 16
+// #define MAP_SECTOR 256
+// #define DIRS_SECTOR 257
+// #define FILES_SECTOR 258
+// #define SECTORS_SECTOR 259
+// #define TRUE 1
+// #define FALSE 0
+// #define INSUFFICIENT_SECTORS -4
+// #define INSUFFICIENT_ENTRIES -3
+// #define ALREADY_EXISTS -2
+// #define NOT_FOUND -1
+// #define EMPTY 0x00
+// #define USED 0xFF
+// #define ROOT 0xFF
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 // String syscall
@@ -70,22 +71,23 @@ int main() {
    printString("Press any key to continue...");
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
+   interrupt(0x10,0xE00+'\n',0,0,0);
 
    // printString("belum while");
    while (1){
       
-      makeDirectory("abc",&suc,ROOT);
-      makeDirectory("bbb",&suc,ROOT);
+      // makeDirectory("abc",&suc,ROOT);
+      // makeDirectory("bbb",&suc,ROOT);
 
-      makeDirectory("ccc",&suc,ROOT);
-      makeDirectory("abc/jjj1",&suc,ROOT);
-      makeDirectory("bbb/jjj2",&suc,ROOT);
-      makeDirectory("ccc/jjj3",&suc,ROOT);
+      // makeDirectory("ccc",&suc,ROOT);
+      // makeDirectory("abc/jjj1",&suc,ROOT);
+      // makeDirectory("bbb/jjj2",&suc,ROOT);
+      // makeDirectory("ccc/jjj3",&suc,ROOT);
       
 
-      makeDirectory("ccc/jjj3/222",&suc,ROOT);
+      // makeDirectory("ccc/jjj3/222",&suc,ROOT);
 
-      makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
+      // makeDirectory("ccc/jjj3/222/333",&suc,ROOT);
       argv[0]="/";
       putArgs(ROOT,1,argv);
       executeProgram("shell",0x2000,&suc,ROOT);
@@ -146,7 +148,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          pathParser(BX,CX,DX,AH);
          break;
       case 0x11:
-         finder(BX,CX,DX,AH);
+         finder(BX,CX,AH,DX);
          break;
       case 0x12:
          isDirectory(BX,CX,AH);
