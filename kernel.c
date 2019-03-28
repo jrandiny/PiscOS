@@ -1,27 +1,4 @@
 #include "definition.h"
-// #define ARGS_SECTOR 512
-// #define MAX_BYTE 256
-// #define SECTOR_SIZE 512
-// #define MAX_DIRECTORY 32
-// #define MAX_FILES 32
-// #define MAX_FILESYSTEM_ITEM 32
-// #define MAX_DIRECTORYNAME 15
-// #define MAX_FILENAME 15
-// #define MAX_SECTORS 16
-// #define DIR_ENTRY_LENGTH 16
-// #define MAP_SECTOR 256
-// #define DIRS_SECTOR 257
-// #define FILES_SECTOR 258
-// #define SECTORS_SECTOR 259
-// #define TRUE 1
-// #define FALSE 0
-// #define INSUFFICIENT_SECTORS -4
-// #define INSUFFICIENT_ENTRIES -3
-// #define ALREADY_EXISTS -2
-// #define NOT_FOUND -1
-// #define EMPTY 0x00
-// #define USED 0xFF
-// #define ROOT 0xFF
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 // String syscall
@@ -48,15 +25,13 @@ void isDirectory(char * path,int * result, char parentIdx);
 void getFileSize(char *path, int *result, char parentIndex);
 
 // Helper function
-int mod(int a, int b);
-int div(int a, int b);
 void clear(char *buffer, int length);
 void printTxt(char * filename,int x, int y, int color);
 void clearScreen(int height);
 void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
 void finder(char* name,char* dir, char parent,int* idx);
-
-void intToChar(int angka, char* hasil);
+int mod(int a, int b);
+int div(int a, int b);
 
 int main() {
    char tempFile[SECTOR_SIZE*MAX_SECTORS];
@@ -161,7 +136,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
    }
 }
 
-
 int mod(int a, int b) {
    while(a >= b) {
       a = a - b;
@@ -197,33 +171,32 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    char dirs[SECTOR_SIZE];
    char dirSearch[MAX_DIRECTORYNAME];
    int pathLength;
-   int filePart;
+   boolean filePart;
    int lastEnd;
    int temp;
-   int found;
+   boolean found;
 
    parentTemp = parentIndex;
    pathLength = stringLen(path);
-   filePart = 0;
+   filePart = false;
    lastEnd = 0;
 
    readSector(dirs, DIRS_SECTOR);
    
    *dirIndex = parentIndex;
 
-   filePart = 0;
    lastEnd = 0;
    while(!filePart){
       splitString(path,'/',lastEnd,&temp);
       if(temp+1==pathLength){
-         filePart = 1;
+         filePart = true;
       }else{
          stringCopy(path,dirSearch,lastEnd,temp-lastEnd+1);
-         found = 0;
+         found = false;
          *dirIndex = 0;
          while((*dirIndex)<MAX_DIRECTORY && !found){
             if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
-               found = 1;
+               found = true;
                parentTemp = (*dirIndex);
             }else{
                (*dirIndex)++;
@@ -243,11 +216,11 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
 }
 
 void finder(char* name,char* dir, char parent,int* idx){
-   int found=0;
+   boolean found=false;
    *idx=0;
    while((*idx)<MAX_FILESYSTEM_ITEM && !found){
       if(stringCompare(name,dir+(*idx)*DIR_ENTRY_LENGTH+1,MAX_FILENAME)&&dir[(*idx)*DIR_ENTRY_LENGTH]==parent){
-         found = 1;
+         found = true;
       }else{
          (*idx)++;
       }
@@ -268,12 +241,9 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
 
    char sectorBuffer[SECTOR_SIZE];
    int fileIndex;
-   int found;
-   int fileExists;
+   boolean found;
+   boolean fileExists;
    int dirIndex;
-   int filePart;
-   int pathLength;
-   char parentTemp;
 
    int sectorCount;
 
@@ -312,14 +282,14 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    }else{
       // Cari lokasi file kosong
       fileIndex = 0;
-      found = 0;
-      fileExists = 0;
+      found = false;
+      fileExists = false;
       while(fileIndex<MAX_FILES && !found && !fileExists){
          if (files[fileIndex * DIR_ENTRY_LENGTH+1] == '\0') {
-            found = 1;
+            found = true;
          }else{
             if(stringCompare(files+fileIndex*DIR_ENTRY_LENGTH+1,fileName,0,MAX_FILENAME)&&files[fileIndex*DIR_ENTRY_LENGTH]==dirIndex){
-               fileExists = 1;
+               fileExists = true;
             }
             fileIndex++;
          }
@@ -565,7 +535,7 @@ void getArgv (char index, char *argv) {
 void makeDirectory(char *path, int *result, char parentIndex){
    char directories[SECTOR_SIZE];
    char filename[MAX_FILENAME];
-   int emptyFound;
+   boolean emptyFound;
    int dirIdx;
    int foundIdx;
    int parentIdx;
@@ -573,12 +543,12 @@ void makeDirectory(char *path, int *result, char parentIndex){
    char temp[2];
 
    readSector(directories,DIRS_SECTOR);
-   emptyFound=0;
+   emptyFound=false;
    dirIdx=0;
    
    while(dirIdx<MAX_FILESYSTEM_ITEM && !emptyFound){
       if(directories[dirIdx*DIR_ENTRY_LENGTH]==EMPTY&&directories[dirIdx*DIR_ENTRY_LENGTH+1]=='\0'){
-         emptyFound=1;
+         emptyFound=true;
       } else {
          dirIdx++;
       }

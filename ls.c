@@ -1,12 +1,4 @@
 #include "definition.h"
-// #define SECTOR_SIZE 512
-// #define DIRS_SECTOR 257
-// #define FILES_SECTOR 258
-// #define MAX_FILENAME 15
-// #define MAX_FILESYSTEM_ITEM 32
-// #define DIR_ENTRY_LENGTH 16
-
-// void stringCopy(char* in, char* out, int start, int length);
 
 int main(){
     char name[MAX_FILENAME];
@@ -35,15 +27,3 @@ int main(){
     interrupt(0x21,0x7,0,0,0); // terminateProgram
     return 0;
 }
-
-// void stringCopy(char* in, char* out, int start, int length){
-//     int index = start;
-//     int outIndex = 0;
-
-//     while(outIndex<length && in[index]!='\0'){
-//         out[outIndex] = in[index];
-//         index++;
-//         outIndex++;
-//     }
-//     out[outIndex] = '\0';
-// }

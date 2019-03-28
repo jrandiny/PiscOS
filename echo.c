@@ -1,10 +1,8 @@
-
-
 int main(){
     char temp[128][128];
     char hasil[128];
     char print[2];
-    int n;
+    char n;
     int i;
     int j;
     int k;
