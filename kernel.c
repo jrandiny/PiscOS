@@ -43,6 +43,8 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void deleteDirectory(char *path, int *success, char parentIndex);
 void deleteFile(char *path, int *result, char parentIndex);
 void makeDirectory(char *path, int *result, char parentIndex);
+void isDirectory(char * path,int * result, char parentIdx);
+void getFileSize(char *path, int *result, char parentIndex);
 
 // Helper function
 int mod(int a, int b);
@@ -51,7 +53,7 @@ void clear(char *buffer, int length);
 void printTxt(char * filename,int x, int y, int color);
 void clearScreen(int height);
 void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
-void finder(char* name,char* dir, int parent,int* idx);
+void finder(char* name,char* dir, char parent,int* idx);
 
 void intToChar(int angka, char* hasil);
 
@@ -140,6 +142,18 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0X23:
          getArgv(BX, CX);
          break;
+      case 0x10:
+         pathParser(BX,CX,DX,AH);
+         break;
+      case 0x11:
+         finder(BX,CX,DX,AH);
+         break;
+      case 0x12:
+         isDirectory(BX,CX,AH);
+         break;
+      case 0x13:
+         getFileSize(BX,CX,AH);
+         break;
       default:
          printString("Invalid interrupt");
    }
@@ -226,7 +240,7 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    stringCopy(path,fileName,lastEnd,temp+1);
 }
 
-void finder(char* name,char* dir, int parent,int* idx){
+void finder(char* name,char* dir, char parent,int* idx){
    int found=0;
    *idx=0;
    while((*idx)<MAX_FILESYSTEM_ITEM && !found){
@@ -680,4 +694,52 @@ void deleteFile(char *path, int *result, char parentIndex){
    } else {
       *result=NOT_FOUND;
    }
+}
+
+void isDirectory(char * path,int * result, char parentIdx){
+   char dirs[SECTOR_SIZE];
+   char files[SECTOR_SIZE];
+   char filename[MAX_FILENAME];
+   int dirIdx;
+   int foundIdx;
+
+   readSector(dirs,DIRS_SECTOR);
+   readSector(files,FILES_SECTOR);
+
+   pathParser(path,filename,&dirIdx,parentIdx);
+   if(dirIdx!=NOT_FOUND){
+      finder(filename,dirs,dirIdx,&foundIdx);
+      if(foundIdx==NOT_FOUND){
+         finder(filename,files,dirIdx,&foundIdx);
+         if(foundIdx==NOT_FOUND){
+            *result = NOT_FOUND;
+         }else{
+            *result = 0;
+         }
+      }else{
+         *result = 1;
+      }
+   }else{
+      *result=NOT_FOUND;
+   }
+
+}
+
+void getFileSize(char *path, int *result, char parentIndex){
+   char files[SECTOR_SIZE];
+   char filename[MAX_FILENAME];
+   char sectors[SECTOR_SIZE];
+   char tempAngka[10];
+
+   int dirIndex;
+   int fileIndex;
+
+   readSector(files,FILES_SECTOR);
+   readSector(sectors, SECTORS_SECTOR);
+
+   pathParser(path,filename,&dirIndex,parentIndex);
+   finder(filename,files,parentIndex,&fileIndex);
+
+
+   *result = stringLen(sectors+fileIndex*DIR_ENTRY_LENGTH);
 }
