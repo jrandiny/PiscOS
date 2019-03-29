@@ -55,7 +55,11 @@ void copy(char* from, char* to,char currDir,int* success){
         //mungkin hang karena overuse result
         if(result==0){
             interrupt(0x21,currDir<<8|0x05,tempBuffer,to,&nSector);//writeFile
-            *success=nSector;//set success
+            if(nSector>0){
+                *success = 0;
+            } else {
+                *success=nSector;//set success
+            }
         }else{
             interrupt(0x21,0x00,errMsg+EMSG_IO_ERROR*SIZE_EMSG_ENTRY,0,0);
         }

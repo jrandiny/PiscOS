@@ -305,8 +305,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
                }
             }
 
-            // *sectors = 0;
-
             writeSector(map,LOC_MAP_SECTOR);
             writeSector(files,LOC_FILE_SECTOR);
             writeSector(dirs,LOC_DIR_SECTOR);
