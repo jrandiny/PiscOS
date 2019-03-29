@@ -13,10 +13,10 @@
 #define MAX_NAME 15
 #define MAX_SECTORS 16
 #define ENTRY_LENGTH 16
-#define MAP_SECTOR 256
-#define FILES_SECTOR 258
-#define SECTORS_SECTOR 259
-#define NOT_FOUND -1
+#define LOC_MAP_SECTOR 256
+#define LOC_FILE_SECTOR 258
+#define LOC_SECTOR_SECTOR 259
+#define ERROR_NOT_FOUND -1
 
 void readSector (char *buffer, FILE *file, int sector) {
   fseek(file, sector * SECTOR_SIZE, SEEK_SET);
@@ -66,7 +66,7 @@ int findUnusedEntry (char *entries) {
       return i;
     }
   }
-  return NOT_FOUND;
+  return ERROR_NOT_FOUND;
 }
 
 int findUnusedSector (char *map) {
@@ -76,7 +76,7 @@ int findUnusedSector (char *map) {
       return i;
     }
   }
-  return NOT_FOUND;
+  return ERROR_NOT_FOUND;
 }
 
 int main (int argc, char* argv[]) {
@@ -103,23 +103,23 @@ int main (int argc, char* argv[]) {
 
 	//load map sector
 	char map[SECTOR_SIZE];
-	readSector(map, floppy, MAP_SECTOR);
+	readSector(map, floppy, LOC_MAP_SECTOR);
     
   //load files sector
 	char files[SECTOR_SIZE];
-	readSector(files, floppy, FILES_SECTOR);
+	readSector(files, floppy, LOC_FILE_SECTOR);
     
   //load sectors sector
 	char sectors[SECTOR_SIZE];
-	readSector(sectors, floppy, SECTORS_SECTOR);
+	readSector(sectors, floppy, LOC_SECTOR_SECTOR);
 
 	//find a free entry
   int index = findUnusedEntry(files);
-  if (index != NOT_FOUND) {
+  if (index != ERROR_NOT_FOUND) {
     int sectorCount = 0;
     while (!feof(loadFile)) {
       int sector = findUnusedSector(map);
-      if (sector != NOT_FOUND) {
+      if (sector != ERROR_NOT_FOUND) {
         copySector(loadFile, sectorCount, floppy, sector);
         printf("Loaded %s to sector %d\n", argv[1], sector);
         map[sector] = 0xFF;
@@ -133,9 +133,9 @@ int main (int argc, char* argv[]) {
     }
     files[index * ENTRY_LENGTH] = 0xFF;
     writeName(files, index, argv[1]);
-    writeSector(map, floppy, MAP_SECTOR);
-    writeSector(files, floppy, FILES_SECTOR);
-    writeSector(sectors, floppy, SECTORS_SECTOR);
+    writeSector(map, floppy, LOC_MAP_SECTOR);
+    writeSector(files, floppy, LOC_FILE_SECTOR);
+    writeSector(sectors, floppy, LOC_SECTOR_SECTOR);
   }
   else {
     printf("Cannot load more files: reached max files\n");

@@ -181,7 +181,7 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
    filePart = false;
    lastEnd = 0;
 
-   readSector(dirs, DIRS_SECTOR);
+   readSector(dirs, LOC_DIR_SECTOR);
    
    *dirIndex = parentIndex;
 
@@ -194,8 +194,8 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
          stringCopy(path,dirSearch,lastEnd,temp-lastEnd+1);
          found = false;
          *dirIndex = 0;
-         while((*dirIndex)<MAX_DIRECTORY && !found){
-            if(stringCompare(dirs+(*dirIndex)*DIR_ENTRY_LENGTH+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*DIR_ENTRY_LENGTH]==parentTemp)){
+         while((*dirIndex)<MAX_DIRECTORIES && !found){
+            if(stringCompare(dirs+(*dirIndex)*LENGTH_DIR_ENTRY+1,dirSearch,MAX_DIRECTORYNAME) && (dirs[(*dirIndex)*LENGTH_DIR_ENTRY]==parentTemp)){
                found = true;
                parentTemp = (*dirIndex);
             }else{
@@ -206,7 +206,7 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
          if(found){
             lastEnd = temp+2;
          }else{
-            *dirIndex = NOT_FOUND;
+            *dirIndex = ERROR_NOT_FOUND;
             return;
          }
       }
@@ -218,15 +218,15 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex){
 void finder(char* name,char* dir, char parent,int* idx){
    boolean found=false;
    *idx=0;
-   while((*idx)<MAX_FILESYSTEM_ITEM && !found){
-      if(stringCompare(name,dir+(*idx)*DIR_ENTRY_LENGTH+1,MAX_FILENAME)&&dir[(*idx)*DIR_ENTRY_LENGTH]==parent){
+   while((*idx)<MAX_FILESYSTEM_ITEM_COUNT && !found){
+      if(stringCompare(name,dir+(*idx)*LENGTH_DIR_ENTRY+1,MAX_FILENAME)&&dir[(*idx)*LENGTH_DIR_ENTRY]==parent){
          found = true;
       }else{
          (*idx)++;
       }
    }
    if(!found){
-      *idx=NOT_FOUND;
+      *idx=ERROR_NOT_FOUND;
    }
 }
 
@@ -254,15 +254,15 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    int j;
    
 
-   readSector(map, MAP_SECTOR);
-   readSector(dirs, DIRS_SECTOR);
-   readSector(saveSectors,SECTORS_SECTOR);
-   readSector(files,FILES_SECTOR);
+   readSector(map, LOC_MAP_SECTOR);
+   readSector(dirs, LOC_DIR_SECTOR);
+   readSector(saveSectors,LOC_SECTOR_SECTOR);
+   readSector(files,LOC_FILE_SECTOR);
 
    // Cari direktori
    pathParser(path,fileName,&dirIndex,parentIndex);
-   if(dirIndex==NOT_FOUND){
-      *sectors = NOT_FOUND;
+   if(dirIndex==ERROR_NOT_FOUND){
+      *sectors = ERROR_NOT_FOUND;
       return;
    }
 
@@ -277,7 +277,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
    }
 
    if(sectorCount < *sectors){
-      *sectors = INSUFFICIENT_SECTORS;
+      *sectors = ERROR_INSUFFICIENT_SECTORS;
       return;
    }else{
       // Cari lokasi file kosong
@@ -285,10 +285,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
       found = false;
       fileExists = false;
       while(fileIndex<MAX_FILES && !found && !fileExists){
-         if (files[fileIndex * DIR_ENTRY_LENGTH+1] == '\0') {
+         if (files[fileIndex * LENGTH_DIR_ENTRY+1] == '\0') {
             found = true;
          }else{
-            if(stringCompare(files+fileIndex*DIR_ENTRY_LENGTH+1,fileName,0,MAX_FILENAME)&&files[fileIndex*DIR_ENTRY_LENGTH]==dirIndex){
+            if(stringCompare(files+fileIndex*LENGTH_DIR_ENTRY+1,fileName,0,MAX_FILENAME)&&files[fileIndex*LENGTH_DIR_ENTRY]==dirIndex){
                fileExists = true;
             }
             fileIndex++;
@@ -298,16 +298,16 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
       if(fileIndex < MAX_FILES){
          if(!fileExists){
             // Entry file
-            clear(files + fileIndex * DIR_ENTRY_LENGTH, DIR_ENTRY_LENGTH);
-            stringCopy(fileName,files+fileIndex * DIR_ENTRY_LENGTH+ 1 ,0,MAX_FILENAME);
+            clear(files + fileIndex * LENGTH_DIR_ENTRY, LENGTH_DIR_ENTRY);
+            stringCopy(fileName,files+fileIndex * LENGTH_DIR_ENTRY+ 1 ,0,MAX_FILENAME);
 
-            files[fileIndex*DIR_ENTRY_LENGTH] = dirIndex;
+            files[fileIndex*LENGTH_DIR_ENTRY] = dirIndex;
 
             // Entry sector
             for (i = 0, sectorCount = 0; i < MAX_BYTE && sectorCount < *sectors; ++i) {
                if (map[i] == EMPTY) {
                   map[i] = USED;
-                  saveSectors[fileIndex * DIR_ENTRY_LENGTH + sectorCount] = i;
+                  saveSectors[fileIndex * LENGTH_DIR_ENTRY + sectorCount] = i;
                   clear(sectorBuffer, SECTOR_SIZE);
                   for (j = 0; j < SECTOR_SIZE; ++j) {
                      sectorBuffer[j] = buffer[sectorCount * SECTOR_SIZE + j];
@@ -317,19 +317,19 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
                }
             }
 
-            *sectors = 0;
+            // *sectors = 0;
 
-            writeSector(map,MAP_SECTOR);
-            writeSector(files,FILES_SECTOR);
-            writeSector(dirs,DIRS_SECTOR);
-            writeSector(saveSectors,SECTORS_SECTOR);
+            writeSector(map,LOC_MAP_SECTOR);
+            writeSector(files,LOC_FILE_SECTOR);
+            writeSector(dirs,LOC_DIR_SECTOR);
+            writeSector(saveSectors,LOC_SECTOR_SECTOR);
 
          }else{
-            *sectors = ALREADY_EXISTS;
+            *sectors = ERROR_ALREADY_EXISTS;
             return;
          }
       }else{
-         *sectors = INSUFFICIENT_ENTRIES;
+         *sectors = ERROR_INSUFFICIENT_ENTRIES;
          return;
       }
    }
@@ -346,21 +346,21 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
    int i=0;
 
 
-   readSector(directories,DIRS_SECTOR);  
-   readSector(files,FILES_SECTOR);
-   readSector(sectors,SECTORS_SECTOR);
+   readSector(directories,LOC_DIR_SECTOR);  
+   readSector(files,LOC_FILE_SECTOR);
+   readSector(sectors,LOC_SECTOR_SECTOR);
 
    pathParser(path,filename,&dirIdx,parentIndex);
-   if(dirIdx==NOT_FOUND){
-      *result = NOT_FOUND;
+   if(dirIdx==ERROR_NOT_FOUND){
+      *result = ERROR_NOT_FOUND;
       return;
    }
    
    finder(filename,files,dirIdx,&fileIdx);
 
-   if(fileIdx!=NOT_FOUND){
+   if(fileIdx!=ERROR_NOT_FOUND){
       for(i=0;i<MAX_SECTORS;i++){
-         listOfSector[i] = *(sectors+fileIdx*DIR_ENTRY_LENGTH+i);
+         listOfSector[i] = *(sectors+fileIdx*LENGTH_DIR_ENTRY+i);
       }
       i = 0;
       while(i<MAX_SECTORS && listOfSector[i]!=EMPTY){
@@ -369,7 +369,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex){
       }
       *result = 0;
    } else {
-      *result = NOT_FOUND;
+      *result = ERROR_NOT_FOUND;
    }
 }
 
@@ -493,29 +493,29 @@ void putArgs (char curdir, char argc, char **argv) {
       }
    }
 
-   writeSector(args, ARGS_SECTOR);
+   writeSector(args, LOC_ARGS_SECTOR);
 }
 
 void getCurdir (char *curdir) {
    char args[SECTOR_SIZE];
-   readSector(args, ARGS_SECTOR);
+   readSector(args, LOC_ARGS_SECTOR);
    *curdir = args[0];
 }
 
 void getArgc (char *argc) {
    char args[SECTOR_SIZE];
-   readSector(args, ARGS_SECTOR);
+   readSector(args, LOC_ARGS_SECTOR);
    *argc = args[1];
 }
 
 void getArgv (char index, char *argv) {
    char args[SECTOR_SIZE];
    int i, j, p;
-   readSector(args, ARGS_SECTOR);
+   readSector(args, LOC_ARGS_SECTOR);
 
    i = 0;
    j = 0;
-   for (p = 2; p < ARGS_SECTOR; ++p) {
+   for (p = 2; p < LOC_ARGS_SECTOR; ++p) {
       if (i == index) {
          argv[j] = args[p];
          ++j;
@@ -542,12 +542,12 @@ void makeDirectory(char *path, int *result, char parentIndex){
    int i;
    char temp[2];
 
-   readSector(directories,DIRS_SECTOR);
+   readSector(directories,LOC_DIR_SECTOR);
    emptyFound=false;
    dirIdx=0;
    
-   while(dirIdx<MAX_FILESYSTEM_ITEM && !emptyFound){
-      if(directories[dirIdx*DIR_ENTRY_LENGTH]==EMPTY&&directories[dirIdx*DIR_ENTRY_LENGTH+1]=='\0'){
+   while(dirIdx<MAX_DIRECTORIES && !emptyFound){
+      if(directories[dirIdx*LENGTH_DIR_ENTRY]==EMPTY&&directories[dirIdx*LENGTH_DIR_ENTRY+1]=='\0'){
          emptyFound=true;
       } else {
          dirIdx++;
@@ -556,23 +556,23 @@ void makeDirectory(char *path, int *result, char parentIndex){
 
    if (emptyFound){
       pathParser(path,filename,&parentIdx,parentIndex);
-      if(parentIdx==NOT_FOUND){
-         *result=NOT_FOUND;
+      if(parentIdx==ERROR_NOT_FOUND){
+         *result=ERROR_NOT_FOUND;
          return;
       }else{
          finder(filename,directories,parentIdx,&foundIdx);
-         if(foundIdx!=NOT_FOUND){
-            *result=ALREADY_EXISTS;
+         if(foundIdx!=ERROR_NOT_FOUND){
+            *result=ERROR_ALREADY_EXISTS;
             return;
          }else{
-            directories[dirIdx*DIR_ENTRY_LENGTH]=parentIdx;
-            stringCopy(filename,directories+dirIdx*DIR_ENTRY_LENGTH+1,0,MAX_FILENAME);
-            writeSector(directories,DIRS_SECTOR);
+            directories[dirIdx*LENGTH_DIR_ENTRY]=parentIdx;
+            stringCopy(filename,directories+dirIdx*LENGTH_DIR_ENTRY+1,0,MAX_FILENAME);
+            writeSector(directories,LOC_DIR_SECTOR);
             *result=0;
          }
       }
    } else {
-      *result=INSUFFICIENT_ENTRIES;
+      *result=ERROR_INSUFFICIENT_ENTRIES;
    }
 }
 
@@ -586,37 +586,37 @@ void deleteDirectory(char *path, int *success, char parentIndex){
    int i;
    int succ=1;
 
-   readSector(directories,DIRS_SECTOR);
-   readSector(files,FILES_SECTOR);
+   readSector(directories,LOC_DIR_SECTOR);
+   readSector(files,LOC_FILE_SECTOR);
    pathParser(path,dirName,&dirIdx,parentIndex);
-   if (dirIdx==NOT_FOUND){
-     *success = NOT_FOUND;
+   if (dirIdx==ERROR_NOT_FOUND){
+     *success = ERROR_NOT_FOUND;
       return;
    }
    finder(dirName,directories,dirIdx,&dirIdx);
-   if(dirIdx!=NOT_FOUND){
-      directories[dirIdx*DIR_ENTRY_LENGTH]=EMPTY;
+   if(dirIdx!=ERROR_NOT_FOUND){
+      directories[dirIdx*LENGTH_DIR_ENTRY]=EMPTY;
       for(i=0;i<MAX_DIRECTORYNAME;i++){
-         directories[dirIdx*DIR_ENTRY_LENGTH+i+1]=EMPTY;
+         directories[dirIdx*LENGTH_DIR_ENTRY+i+1]=EMPTY;
       }
-      for(i=0;i<MAX_DIRECTORY;i++){
-         if(directories[i*DIR_ENTRY_LENGTH]==dirIdx && directories[i*DIR_ENTRY_LENGTH+1]!='\0'){
-            stringCopy(directories,dirName,i*DIR_ENTRY_LENGTH+1,MAX_DIRECTORYNAME);
-            writeSector(directories,DIRS_SECTOR);
+      for(i=0;i<MAX_DIRECTORIES;i++){
+         if(directories[i*LENGTH_DIR_ENTRY]==dirIdx && directories[i*LENGTH_DIR_ENTRY+1]!='\0'){
+            stringCopy(directories,dirName,i*LENGTH_DIR_ENTRY+1,MAX_DIRECTORYNAME);
+            writeSector(directories,LOC_DIR_SECTOR);
             deleteDirectory(dirName,&succ,dirIdx);
-            readSector(directories,DIRS_SECTOR);
+            readSector(directories,LOC_DIR_SECTOR);
          }
       }
       for(i=0;i<MAX_FILES;i++){
-         if(files[i*DIR_ENTRY_LENGTH]==dirIdx && files[i*DIR_ENTRY_LENGTH+1]!='\0'){
-            stringCopy(files,filename,i*DIR_ENTRY_LENGTH+1,MAX_FILENAME);
+         if(files[i*LENGTH_DIR_ENTRY]==dirIdx && files[i*LENGTH_DIR_ENTRY+1]!='\0'){
+            stringCopy(files,filename,i*LENGTH_DIR_ENTRY+1,MAX_FILENAME);
             deleteFile(filename,&succ,dirIdx);
          }
       }
-      writeSector(directories,DIRS_SECTOR);
+      writeSector(directories,LOC_DIR_SECTOR);
       *success=0;
    } else {
-      *success = NOT_FOUND;
+      *success = ERROR_NOT_FOUND;
    }
 }
 
@@ -632,37 +632,37 @@ void deleteFile(char *path, int *result, char parentIndex){
    int i;
    int succ=1;
 
-   readSector(directories,DIRS_SECTOR);
-   readSector(files,FILES_SECTOR);
-   readSector(map,MAP_SECTOR);
-   readSector(sectors,SECTORS_SECTOR);
+   readSector(directories,LOC_DIR_SECTOR);
+   readSector(files,LOC_FILE_SECTOR);
+   readSector(map,LOC_MAP_SECTOR);
+   readSector(sectors,LOC_SECTOR_SECTOR);
 
    pathParser(path,filename,&dirIdx,parentIndex);
-   if (dirIdx==NOT_FOUND){
-     *result = NOT_FOUND;
+   if (dirIdx==ERROR_NOT_FOUND){
+     *result = ERROR_NOT_FOUND;
       return;
    }
 
    finder(filename,files,dirIdx,&fileIdx);
 
-   if(fileIdx!=NOT_FOUND){
-      files[fileIdx*DIR_ENTRY_LENGTH]=EMPTY;
+   if(fileIdx!=ERROR_NOT_FOUND){
+      files[fileIdx*LENGTH_DIR_ENTRY]=EMPTY;
       for(i=0;i<MAX_FILENAME;i++){
-         files[fileIdx*DIR_ENTRY_LENGTH+i+1]=EMPTY;
+         files[fileIdx*LENGTH_DIR_ENTRY+i+1]=EMPTY;
       }
       for(i=0;i<MAX_SECTORS;i++){
-         if(*(sectors+fileIdx*DIR_ENTRY_LENGTH+i) != '\0'){
-            map[*(sectors+fileIdx*DIR_ENTRY_LENGTH+i)]=EMPTY;
-            *(sectors+fileIdx*DIR_ENTRY_LENGTH+i)=EMPTY;
+         if(*(sectors+fileIdx*LENGTH_DIR_ENTRY+i) != '\0'){
+            map[*(sectors+fileIdx*LENGTH_DIR_ENTRY+i)]=EMPTY;
+            *(sectors+fileIdx*LENGTH_DIR_ENTRY+i)=EMPTY;
          }
       }
       
-      writeSector(files,FILES_SECTOR);
-      writeSector(map,MAP_SECTOR);
-      writeSector(sectors,SECTORS_SECTOR);
+      writeSector(files,LOC_FILE_SECTOR);
+      writeSector(map,LOC_MAP_SECTOR);
+      writeSector(sectors,LOC_SECTOR_SECTOR);
       *result=0;
    } else {
-      *result=NOT_FOUND;
+      *result=ERROR_NOT_FOUND;
    }
 }
 
@@ -673,16 +673,16 @@ void isDirectory(char * path,int * result, char parentIdx){
    int dirIdx;
    int foundIdx;
 
-   readSector(dirs,DIRS_SECTOR);
-   readSector(files,FILES_SECTOR);
+   readSector(dirs,LOC_DIR_SECTOR);
+   readSector(files,LOC_FILE_SECTOR);
 
    pathParser(path,filename,&dirIdx,parentIdx);
-   if(dirIdx!=NOT_FOUND){
+   if(dirIdx!=ERROR_NOT_FOUND){
       finder(filename,dirs,dirIdx,&foundIdx);
-      if(foundIdx==NOT_FOUND){
+      if(foundIdx==ERROR_NOT_FOUND){
          finder(filename,files,dirIdx,&foundIdx);
-         if(foundIdx==NOT_FOUND){
-            *result = NOT_FOUND;
+         if(foundIdx==ERROR_NOT_FOUND){
+            *result = ERROR_NOT_FOUND;
          }else{
             *result = 0;
          }
@@ -690,7 +690,7 @@ void isDirectory(char * path,int * result, char parentIdx){
          *result = 1;
       }
    }else{
-      *result=NOT_FOUND;
+      *result=ERROR_NOT_FOUND;
    }
 
 }
@@ -704,12 +704,12 @@ void getFileSize(char *path, int *result, char parentIndex){
    int dirIndex;
    int fileIndex;
 
-   readSector(files,FILES_SECTOR);
-   readSector(sectors, SECTORS_SECTOR);
+   readSector(files,LOC_FILE_SECTOR);
+   readSector(sectors, LOC_SECTOR_SECTOR);
 
    pathParser(path,filename,&dirIndex,parentIndex);
    finder(filename,files,parentIndex,&fileIndex);
 
 
-   *result = stringLen(sectors+fileIndex*DIR_ENTRY_LENGTH);
+   *result = stringLen(sectors+fileIndex*LENGTH_DIR_ENTRY);
 }

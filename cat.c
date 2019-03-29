@@ -20,13 +20,13 @@ int main(){
     if(argc>1 && stringCompare(argv[1],"-w",2)){
         result = 1;
         interrupt(0x21,currDir<<8|0x05,"abcefghijklmn",argv[0],&result); // writeFile
-        if(result==INSUFFICIENT_SECTORS){
+        if(result==ERROR_INSUFFICIENT_SECTORS){
             interrupt(0x21,0x00,"Insufficient sectors\n",0,0); // printString
-        }else if(result == NOT_FOUND){
+        }else if(result == ERROR_NOT_FOUND){
             interrupt(0x21,0x00,"Not found\n",0,0);
-        }else if(result == ALREADY_EXISTS){
+        }else if(result == ERROR_ALREADY_EXISTS){
             interrupt(0x21,0x00,"Already exists\n",0,0);
-        }else if(result == INSUFFICIENT_ENTRIES){
+        }else if(result == ERROR_INSUFFICIENT_ENTRIES){
             interrupt(0x21,0x00,"Insufficient entries\n",0,0);
         }else{
             interrupt(0x21,0x00,"Masukkan teks : ",0,0);
@@ -40,7 +40,7 @@ int main(){
         if(result==0){
             interrupt(0x21,0x00,tempFile,0,0);
             interrupt(0x21,0x00,"\n",0,0);
-        }else if(result==NOT_FOUND){
+        }else if(result==ERROR_NOT_FOUND){
             interrupt(0x21,0x00,"Not found\n",0,0);
         }
     }else{

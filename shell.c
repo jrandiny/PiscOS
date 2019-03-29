@@ -1,7 +1,7 @@
 #include "definition.h"
 
-void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]);
-void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], char argc, char* pathNow, int curDir);
+void splitStringArray(char *s, char delim, int* length, char result[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH]);
+void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char argc, char* pathNow, int curDir);
 void getPathNow(char curDir, char* pathNow);
 
 int main(){
@@ -13,9 +13,9 @@ int main(){
    char pathNow[MAX_PATHNAME];
    char directories[SECTOR_SIZE];
    char input[MAX_PATHNAME];
-   char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH];
-   char tempPath[MAX_ELEMENT][MAX_STRINGLENGTH];
-   char tempCurrPath[MAX_ELEMENT][MAX_STRINGLENGTH];
+   char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
+   char tempPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
+   char tempCurrPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
    int pathPartCount;
    int currPathPartCount;
    int tempFindResult;
@@ -25,7 +25,7 @@ int main(){
    interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
    getPathNow(curDir,pathNow);
    while(1){
-      interrupt(0x21,0x02,directories,DIRS_SECTOR,0); // readSector directori
+      interrupt(0x21,0x02,directories,LOC_DIR_SECTOR,0); // readSector directori
       interrupt(0x21,0x00,pathNow,0,0);
       interrupt(0x21,0x00,"$ ",0,0);
       interrupt(0x21,0x01,input,0,0); // ambil input
@@ -49,26 +49,26 @@ int main(){
                   if(tempCurrPath[currPathPartCount-1][0]!='\0'){
                      if(currPathPartCount>=1){
                         currPathPartCount--;
-                        interrupt(0x21,directories[tempCurrDir*DIR_ENTRY_LENGTH]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
+                        interrupt(0x21,directories[tempCurrDir*LENGTH_DIR_ENTRY]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
 
                         //assert found
-                        if(tempFindResult==NOT_FOUND){
+                        if(tempFindResult==ERROR_NOT_FOUND){
                            cdError = true;
                            break;
                         }
-                        tempCurrDir = directories[tempFindResult*DIR_ENTRY_LENGTH];
+                        tempCurrDir = directories[tempFindResult*LENGTH_DIR_ENTRY];
                      }
                   }
                }else if(tempPath[i][0]!='\0'){
                   // Go to
                   interrupt(0x21,tempCurrDir<<8|0x11,tempPath[i],directories,&tempFindResult);//finder
                   //Assert found
-                  if(tempFindResult==NOT_FOUND){
+                  if(tempFindResult==ERROR_NOT_FOUND){
                      cdError = true;
                      break;
                   }
                   currPathPartCount++;
-                  stringCopy(tempPath[i],tempCurrPath[currPathPartCount-1],0,MAX_STRINGLENGTH);
+                  stringCopy(tempPath[i],tempCurrPath[currPathPartCount-1],0,SHELL_MAX_STRINGLENGTH);
 
                   tempCurrDir = (char)tempFindResult;
                }
@@ -97,7 +97,7 @@ int main(){
    }
 }
 
-void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT][MAX_STRINGLENGTH]){
+void splitStringArray(char *s, char delim, int* length, char result[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH]){
    int idxString=0;
    int lastIdx=0;
    int idxResult=0;
@@ -118,7 +118,7 @@ void splitStringArray(char *s, char delim, int* length, char result[MAX_ELEMENT]
    *length=idxResult;
 }
 
-void executeProgram(char concatedInput[MAX_ELEMENT][MAX_STRINGLENGTH], char argc, char* pathNow, int curDir){
+void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char argc, char* pathNow, int curDir){
    char* argv[50];
    int result;
    int i;
@@ -140,15 +140,15 @@ void getPathNow(char curDir, char* pathNow){
    char dirName[MAX_DIRECTORYNAME];
    char dirIdx;
 
-   interrupt(0x21,0x2,directories,DIRS_SECTOR,0); // readSector directori
+   interrupt(0x21,0x2,directories,LOC_DIR_SECTOR,0); // readSector directori
    dirIdx = curDir;
    stringCopy("",tempPath,0,1);
    while(dirIdx!=ROOT){
-      stringCopy(directories,dirName,dirIdx*DIR_ENTRY_LENGTH+1,MAX_DIRECTORYNAME);
+      stringCopy(directories,dirName,dirIdx*LENGTH_DIR_ENTRY+1,MAX_DIRECTORYNAME);
       stringConcat("/",dirName,tempName);
       stringConcat(tempName,tempPath,pathNow);
       stringCopy(pathNow,tempPath,0,MAX_PATHNAME);
-      dirIdx = directories[dirIdx*DIR_ENTRY_LENGTH];
+      dirIdx = directories[dirIdx*LENGTH_DIR_ENTRY];
    }
    if(curDir==ROOT) stringCopy("/",pathNow,0,2);
 }

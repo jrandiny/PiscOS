@@ -12,13 +12,13 @@ int main(){
 
     interrupt(0x21,curDir<<8|0x09,temp,&res,0);
 
-    if(res != NOT_FOUND){
+    if(res != ERROR_NOT_FOUND){
         succ = true;
     }
 
     interrupt(0x21,curDir<<8|0x0A,temp,&res,0);
 
-    if(res != NOT_FOUND){
+    if(res != ERROR_NOT_FOUND){
         succ = true;
     }
 
