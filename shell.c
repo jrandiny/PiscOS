@@ -4,6 +4,8 @@ void splitStringArray(char *s, char delim, int* length, char result[SHELL_MAX_PA
 void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char argc, char* pathNow, int curDir);
 void getPathNow(char curDir, char* pathNow);
 
+char errMsg[SIZE_SECTOR];
+
 int main(){
    int length;
    int i;
@@ -11,7 +13,7 @@ int main(){
    int result;
    char curDir;
    char pathNow[MAX_PATHNAME];
-   char directories[SECTOR_SIZE];
+   char directories[SIZE_SECTOR];
    char input[MAX_PATHNAME];
    char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
    char tempPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
@@ -23,6 +25,7 @@ int main(){
    boolean cdError;
 
    interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
+   interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
    getPathNow(curDir,pathNow);
    while(1){
       interrupt(0x21,0x02,directories,LOC_DIR_SECTOR,0); // readSector directori
@@ -49,14 +52,14 @@ int main(){
                   if(tempCurrPath[currPathPartCount-1][0]!='\0'){
                      if(currPathPartCount>=1){
                         currPathPartCount--;
-                        interrupt(0x21,directories[tempCurrDir*LENGTH_DIR_ENTRY]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
+                        interrupt(0x21,directories[tempCurrDir*SIZE_DIR_ENTRY]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
 
                         //assert found
                         if(tempFindResult==ERROR_NOT_FOUND){
                            cdError = true;
                            break;
                         }
-                        tempCurrDir = directories[tempFindResult*LENGTH_DIR_ENTRY];
+                        tempCurrDir = directories[tempFindResult*SIZE_DIR_ENTRY];
                      }
                   }
                }else if(tempPath[i][0]!='\0'){
@@ -78,10 +81,10 @@ int main(){
                curDir = tempCurrDir;
                getPathNow(curDir,pathNow);
             }else{
-               interrupt(0x21,0x00,"Error, invalid path\n\r",0,0);
+               interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
             }
          }else{
-            interrupt(0x21,0x00,"Error, invalid path\n\r",0,0);
+            interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
          }
       }else if(stringCompare(concatedInput[0], "./",2)){ // run program dari currDir
          for(i=0;i<stringLen(concatedInput[0])-2;i++){
@@ -129,12 +132,13 @@ void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], 
    interrupt(0x21,0x20,((curDir>>8) & 0xFF),argc,argv); // putArgs
    interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
    if(result!=0){
-      interrupt(0x21,0x00,"No program found\n\r",0,0);
+      interrupt(0x21,0x00,errMsg+EMSG_PROGRAM*SIZE_EMSG_ENTRY,0,0);
+      interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
    }
 }
 
 void getPathNow(char curDir, char* pathNow){
-   char directories[SECTOR_SIZE];
+   char directories[SIZE_SECTOR];
    char tempName[MAX_PATHNAME];
    char tempPath[MAX_PATHNAME];
    char dirName[MAX_DIRECTORYNAME];
@@ -144,11 +148,11 @@ void getPathNow(char curDir, char* pathNow){
    dirIdx = curDir;
    stringCopy("",tempPath,0,1);
    while(dirIdx!=ROOT){
-      stringCopy(directories,dirName,dirIdx*LENGTH_DIR_ENTRY+1,MAX_DIRECTORYNAME);
+      stringCopy(directories,dirName,dirIdx*SIZE_DIR_ENTRY+1,MAX_DIRECTORYNAME);
       stringConcat("/",dirName,tempName);
       stringConcat(tempName,tempPath,pathNow);
       stringCopy(pathNow,tempPath,0,MAX_PATHNAME);
-      dirIdx = directories[dirIdx*LENGTH_DIR_ENTRY];
+      dirIdx = directories[dirIdx*SIZE_DIR_ENTRY];
    }
    if(curDir==ROOT) stringCopy("/",pathNow,0,2);
 }

@@ -42,7 +42,7 @@ gcc ../loadFile.c -o loadFile -w
 ./loadFile shell
 cp ../keyproc2 keyproc2
 ./loadFile keyproc2
-cp ../title.txt title.txt
-cp ../logo.txt logo.txt
-./loadFile logo.txt
-./loadFile title.txt
+cp ../logo logo
+cp ../e.msg e.msg
+./loadFile e.msg
+./loadFile logo

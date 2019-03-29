@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #define MAX_BYTE 256
-#define SECTOR_SIZE 512
+#define SIZE_SECTOR 512
 #define MAX_ENTRIES 32
 #define NAME_OFFSET 1
 #define MAX_NAME 15
@@ -19,26 +19,26 @@
 #define ERROR_NOT_FOUND -1
 
 void readSector (char *buffer, FILE *file, int sector) {
-  fseek(file, sector * SECTOR_SIZE, SEEK_SET);
+  fseek(file, sector * SIZE_SECTOR, SEEK_SET);
   int i;
-	for (i = 0; i < SECTOR_SIZE; ++i) {
+	for (i = 0; i < SIZE_SECTOR; ++i) {
 		buffer[i] = fgetc(file);
   }
 }
 
 void writeSector (char *buffer, FILE *file, int sector) {
-  fseek(file, sector * SECTOR_SIZE, SEEK_SET);
+  fseek(file, sector * SIZE_SECTOR, SEEK_SET);
   int i;
-  for (i = 0; i < SECTOR_SIZE; ++i) {
+  for (i = 0; i < SIZE_SECTOR; ++i) {
 		fputc(buffer[i], file);
   }
 }
 
 void copySector (FILE *src, int srcSector, FILE *dest, int destSector) {
-  fseek(src, srcSector * SECTOR_SIZE, SEEK_SET);
-  fseek(dest, destSector * SECTOR_SIZE, SEEK_SET);
+  fseek(src, srcSector * SIZE_SECTOR, SEEK_SET);
+  fseek(dest, destSector * SIZE_SECTOR, SEEK_SET);
   int i;
-  for (i = 0; i < SECTOR_SIZE; ++i) {
+  for (i = 0; i < SIZE_SECTOR; ++i) {
     if (feof(src)) {
       fputc(0x00, dest);
       return;
@@ -102,15 +102,15 @@ int main (int argc, char* argv[]) {
 	}
 
 	//load map sector
-	char map[SECTOR_SIZE];
+	char map[SIZE_SECTOR];
 	readSector(map, floppy, LOC_MAP_SECTOR);
     
   //load files sector
-	char files[SECTOR_SIZE];
+	char files[SIZE_SECTOR];
 	readSector(files, floppy, LOC_FILE_SECTOR);
     
   //load sectors sector
-	char sectors[SECTOR_SIZE];
+	char sectors[SIZE_SECTOR];
 	readSector(sectors, floppy, LOC_SECTOR_SECTOR);
 
 	//find a free entry

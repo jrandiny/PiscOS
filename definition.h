@@ -1,5 +1,4 @@
 #define MAX_BYTE 256
-#define SECTOR_SIZE 512
 #define MAX_DIRECTORIES 32
 #define MAX_FILES 32
 #define MAX_FILESYSTEM_ITEM_COUNT 32
@@ -7,7 +6,8 @@
 #define MAX_FILENAME 15
 #define MAX_SECTORS 16
 #define MAX_PATHNAME 512
-#define LENGTH_DIR_ENTRY 16
+#define SIZE_SECTOR 512
+#define SIZE_DIR_ENTRY 16
 #define LOC_ARGS_SECTOR 512
 #define LOC_MAP_SECTOR 256
 #define LOC_DIR_SECTOR 257
@@ -23,6 +23,17 @@
 
 #define SHELL_MAX_PART 35
 #define SHELL_MAX_STRINGLENGTH 35
+
+#define SIZE_EMSG_ENTRY 16
+#define EMSG_NOT_FOUND 0
+#define EMSG_INSUFFICIENT 1
+#define EMSG_SECTORS 2
+#define EMSG_ENTRIES 3
+#define EMSG_ALREADY_EXIST 4
+#define EMSG_PROGRAM 5
+#define EMSG_TOO_MANY_ARGS 6
+#define EMSG_INVALID_PATH 7
+#define EMSG_IO_ERROR 8
 
 #define boolean unsigned char
 #define true 1
