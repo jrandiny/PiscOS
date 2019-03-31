@@ -19,7 +19,7 @@ int main(){
         interrupt(0x21,0x23,i,argv[i],0);
     }
 
-    if(argc>1 && stringCompare(argv[1],"-w",2)){
+    if(argc==2 && stringCompare(argv[1],"-w",2)){
         result = 1;
         interrupt(0x21,currDir<<8|0x05,"test",argv[0],&result); // writeFile
         if(result==ERROR_INSUFFICIENT_SECTORS){
@@ -48,7 +48,7 @@ int main(){
             interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0); 
         }
     }else{
-        interrupt(0x21,0x00,"Usage cat <file> (-w)\n",0,0);
+        interrupt(0x21,0x00,"Usage cat <file> (-w)\n\r",0,0);
     }
 
     interrupt(0x21,0x07,0,0,0); // terminateProgram

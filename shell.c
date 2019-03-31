@@ -96,7 +96,7 @@ int main(){
       }else{ // run program dari root
          executeProgram(concatedInput, length-1, pathNow, curDir<<8|0xFF);
       }
-      interrupt(0x21,0x00,"\n\r",0,0);
+      // interrupt(0x21,0x00,"\n\r",0,0);
    }
 }
 

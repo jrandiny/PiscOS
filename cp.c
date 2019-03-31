@@ -16,13 +16,13 @@ int main(){
 
     interrupt(0x21,0x21,&currDir,0,0);
     interrupt(0x21,0x22,&argc,0,0); // ambil argc
-    for(i=0;i<argc;i++){ // copy semua isi argv ke temp
-        interrupt(0x21,0x23,i,argv[i],0);
-    }
     if(argc==2){
+        for(i=0;i<argc;i++){ // copy semua isi argv ke temp
+            interrupt(0x21,0x23,i,argv[i],0);
+        }
         copy(argv[0],argv[1],currDir,&result);
     }else{
-        interrupt(0x21,0x00,"Usage cp <source> <dest>\n",0,0);
+        interrupt(0x21,0x00,"Usage cp <source> <dest>\n\r",0,0);
     }
     interrupt(0x21,0x7,0,0,0); // terminateProgram
     return 0;
@@ -52,20 +52,21 @@ void copy(char* from, char* to,char currDir,int* success){
     }else if(result==0){ //kalau file
         interrupt(0x21,currDir<<8|0x13,from,&nSector,0);//getFileSize
         interrupt(0x21,currDir<<8|0x04,tempBuffer,from,&result);//readFile
-        //mungkin hang karena overuse result
         if(result==0){
             interrupt(0x21,currDir<<8|0x05,tempBuffer,to,&nSector);//writeFile
-            if(nSector>0){
-                *success = 0;
-            } else {
-                *success=nSector;//set success
-            }
+            // if(nSector>0){ // set success
+            //     *success = 0;
+            // } else {
+            //     if(nSector==0)
+            //         *success=ERROR_INSUFFICIENT_SECTORS;
+            //     else 
+            //         *success=nSector;
+            // }
         }else{
             interrupt(0x21,0x00,errMsg+EMSG_IO_ERROR*SIZE_EMSG_ENTRY,0,0);
         }
     }else if(result==1){ //kalau direktori
         interrupt(0x21,currDir<<8|0x08,to,&result,0);//makeDirectory
-        //mungkin hang karena overuse result
         if(result==0 || result==ERROR_ALREADY_EXISTS){//berhasil makeDirectory
             interrupt(0x21,currDir<<8|0x10,from,dirName,&dirIdx);//pathparser
             interrupt(0x21,dirIdx<<8|0x11,dirName,directories,&foundIdx);//finder
@@ -73,7 +74,6 @@ void copy(char* from, char* to,char currDir,int* success){
                 for(i=0;i<MAX_DIRECTORIES;i++){
                     if(directories[i*SIZE_DIR_ENTRY]==foundIdx && directories[i*SIZE_DIR_ENTRY+1]!='\0'){
                         stringCopy(directories,dirName,i*SIZE_DIR_ENTRY+1,MAX_DIRECTORYNAME);
-                        //mungkin error di bawah ini
                         stringCopy(from,tempPathFrom,0,MAX_PATHNAME);
                         stringConcat(tempPathFrom,"/",tempPathFrom);
                         stringConcat(tempPathFrom,dirName,tempPathFrom);
@@ -92,7 +92,6 @@ void copy(char* from, char* to,char currDir,int* success){
                 for(i=0;i<MAX_FILES;i++){
                     if(files[i*SIZE_DIR_ENTRY]==foundIdx && files[i*SIZE_DIR_ENTRY+1]!='\0'){
                         stringCopy(files,filename,i*SIZE_DIR_ENTRY+1,MAX_FILENAME);
-                        //mungkin error di bawah ini
                         stringCopy(from,tempPathFrom,0,MAX_PATHNAME);
                         stringConcat(tempPathFrom,"/",tempPathFrom);
                         stringConcat(tempPathFrom,filename,tempPathFrom);
