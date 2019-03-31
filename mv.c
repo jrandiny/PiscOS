@@ -9,7 +9,6 @@ char errMsg[SIZE_SECTOR];
 
 int main(){
     char argv[128][128];
-    char temp[10];
     char argc;
     int i;
     int result;
@@ -20,7 +19,6 @@ int main(){
     interrupt(0x21,0x21,&currDir,0,0);
 
     interrupt(0x21,0x22,&argc,0,0); // ambil argc
-    interrupt(0x21,0x00,temp,0,0);
     for(i=0;i<argc,i<2;++i){ // copy semua isi argv ke temp
         interrupt(0x21,0x23,i,argv[i],0);
     }
@@ -52,8 +50,6 @@ void copy(char* from, char* to,char currDir,int* success){
 
     interrupt(0x21,0x2,directories,LOC_DIR_SECTOR,0); // readSector directori
     interrupt(0x21,0x2,files,LOC_FILE_SECTOR,0); // readSector file
-    
-    interrupt(0x21,0x00,from,0,0);
 
     interrupt(0x21,currDir<<8|0x12,from,&result,0);//panggil isDirectory
     if(result==ERROR_NOT_FOUND){//kalau bukan file ataupun direktori
