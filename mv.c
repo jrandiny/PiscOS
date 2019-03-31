@@ -28,14 +28,9 @@ int main(){
         copy(argv[0],argv[1],currDir,&result);
         if(result==0){
             rm(currDir,argv[0],&result);
-            if(result==0){
-                interrupt(0x21,0x00,"move success",0,0);
-            }else{
-                interrupt(0x21,0x00,"move fail",0,0);
-            }
         }
     }else{
-        interrupt(0x21,0x00,"hey kebanyakan boi",0,0);
+        interrupt(0x21,0x00,"Usage mv <source> <dest>\n",0,0);
     }
     interrupt(0x21,0x7,0,0,0); // terminateProgram
     return 0;
