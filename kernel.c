@@ -47,12 +47,7 @@ int main() {
    interrupt(0x10,0x3,0,0,0);
    interrupt(0x10,0xE00+'\n',0,0,0);
 
-   // printString("belum while");
    while (1){
-      
-      makeDirectory("abc",&suc,ROOT);
-      makeDirectory("abc/jjj1",&suc,ROOT);
-
       putArgs(ROOT,0,"");
       executeProgram("shell",0x2000,&suc,ROOT);
    }
