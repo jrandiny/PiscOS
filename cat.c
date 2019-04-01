@@ -21,7 +21,7 @@ int main(){
 
     if(argc==2 && stringCompare(argv[1],"-w",2)){
         result = 1;
-        interrupt(0x21,currDir<<8|0x05,"test",argv[0],&result); // writeFile
+        interrupt(0x21,currDir<<8|0x14,"test",argv[0],&result); // writeFile
         if(result==ERROR_INSUFFICIENT_SECTORS){
             interrupt(0x21,0x00,errMsg+EMSG_INSUFFICIENT*SIZE_EMSG_ENTRY,0,0); 
             interrupt(0x21,0x00,errMsg+EMSG_SECTORS*SIZE_EMSG_ENTRY,0,0);
@@ -37,7 +37,7 @@ int main(){
             interrupt(0x21,0x01,tempData,0,0); //readString
             interrupt(0x21,currDir<<8|0x09,argv[0],&result,0); //deleteFile
             result = 1;
-            interrupt(0x21,currDir<<8|0x05,tempData,argv[0],&result); //writeFile
+            interrupt(0x21,currDir<<8|0x14,tempData,argv[0],&result); //writeFile
         }
     }else if(argc==1){
         interrupt(0x21,currDir<<8 | 0x04,tempFile,argv[0],&result);

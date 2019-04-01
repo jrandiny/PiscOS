@@ -17,6 +17,7 @@ void writeSector(char *buffer, int sector);
 // File IO syscall
 void getCurdir (char *curdir);
 void readFile(char *buffer, char *path, int *result, char parentIndex);
+void consistentWriteFile(char *buffer, char *path, int *sectors, char parentIndex);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
 void deleteDirectory(char *path, int *success, char parentIndex);
 void deleteFile(char *path, int *result, char parentIndex);
@@ -119,6 +120,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x13:
          getFileSize(BX,CX,AH);
          break;
+      case 0x14:
+         consistentWriteFile(BX,CX,DX,AH);
+         break;
       default:
          printString("Invalid interrupt");
    }
@@ -215,6 +219,15 @@ void finder(char* name,char* dir, char parent,int* idx){
    }
    if(!found){
       *idx=ERROR_NOT_FOUND;
+   }
+}
+
+void consistentWriteFile(char *buffer, char *path, int *sectors, char parentIndex){
+   writeFile(buffer,path,sectors,parentIndex);
+   if(*sectors==ERROR_INTERNAL_WRITEFILE_INSUFFICIENT_SECTORS){
+      *sectors = ERROR_INSUFFICIENT_SECTORS;
+   }else if(*sectors>0){
+      *sectors = 0;
    }
 }
 

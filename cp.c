@@ -53,15 +53,8 @@ void copy(char* from, char* to,char currDir,int* success){
         interrupt(0x21,currDir<<8|0x13,from,&nSector,0);//getFileSize
         interrupt(0x21,currDir<<8|0x04,tempBuffer,from,&result);//readFile
         if(result==0){
-            interrupt(0x21,currDir<<8|0x05,tempBuffer,to,&nSector);//writeFile
-            // if(nSector>0){ // set success
-            //     *success = 0;
-            // } else {
-            //     if(nSector==0)
-            //         *success=ERROR_INSUFFICIENT_SECTORS;
-            //     else 
-            //         *success=nSector;
-            // }
+            interrupt(0x21,currDir<<8|0x14,tempBuffer,to,&nSector);//writeFile
+            *success=nSector;
         }else{
             interrupt(0x21,0x00,errMsg+EMSG_IO_ERROR*SIZE_EMSG_ENTRY,0,0);
         }
