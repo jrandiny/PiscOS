@@ -43,7 +43,7 @@ int main(){
         interrupt(0x21,currDir<<8 | 0x04,tempFile,argv[0],&result);
         if(result==0){
             interrupt(0x21,0x00,tempFile,0,0);
-            interrupt(0x21,0x00,"\n",0,0);
+            // interrupt(0x21,0x00,"\n",0,0);
         }else if(result==ERROR_NOT_FOUND){
             interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0); 
         }
