@@ -53,17 +53,6 @@ void splitString(char *s, char delim, int start, int* end){
     *end=idxString;
 }
 
-// void stringPlace(char *in,char *out){
-//     int i;
-
-//     i=0;
-//     while(in[i]!='\0'){
-//         out[i]=in[i];
-//         i++;
-//     }
-//     out[i]='\0';
-// }
-
 void stringConcat(char *first, char *second, char *out){
    int i;
    int j;

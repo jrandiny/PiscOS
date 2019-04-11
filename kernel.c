@@ -6,7 +6,8 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void handleTimerInterrupt(int segment, int stackPointer);
 // String syscall
 void printString(char *string);
-void readString(char *string, int disableProcessControls);
+void clearLine();
+void readString(char *string, int disableProcessControls,char* preset);
 // void readString(char *string);
 // Program syscall
 void executeProgram (char *path, int *result, char parentIndex);
@@ -54,7 +55,7 @@ int main() {
    makeTimerInterrupt();
 
    printLogo();
-   printString("Press any key to continue...");
+   // printString("...");
 
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
@@ -75,7 +76,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          printString(BX);
          break;
       case 0x01:
-         readString(BX,CX);
+         readString(BX,CX,DX);
          break;
       case 0x02:
          readSector(BX, CX);
@@ -131,6 +132,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x14:
          consistentWriteFile(BX,CX,DX,AH);
          break;
+      case 0x15:
+         clearLine();
+         break;
       case 0x30:
          yieldControl();
          break;
@@ -146,8 +150,8 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x34:
          killProcess(BX,CX);
          break;
-      default:
-         printString("Invalid interrupt");
+      // default:
+         // printString("err");
    }
 }
 
@@ -435,7 +439,17 @@ void printString(char *string){
    }
 }
 
-void readString(char *string, int disableProcessControls){
+void clearLine(){
+   int i;
+   
+   for(i=0;i<SHELL_MAX_STRINGLENGTH;i++){
+      interrupt(0x10,0xE00+'\b',0,0,0);
+      interrupt(0x10,0xE00+'\0',0,0,0);
+      interrupt(0x10,0xE00+'\b',0,0,0);
+   }
+}
+
+void readString(char *string, int disableProcessControls, char* preset){
    // kurang ctrl+c dan ctrl+z
    char buffer[SIZE_SECTOR];
    char c;
@@ -443,6 +457,15 @@ void readString(char *string, int disableProcessControls){
    unsigned full;
    int counter = 0;
    int i =0;
+   boolean doneReading = false;
+   boolean command = false;
+
+   if(preset!=0){
+      counter = stringLen(preset);
+      stringCopy(preset,buffer,0,counter);
+      printString(buffer);
+   }
+
    do{
       full = getKeyboardFull();
       c = full & 0xff;
@@ -454,19 +477,35 @@ void readString(char *string, int disableProcessControls){
             interrupt(0x10,0xE00+'\0',0,0,0);
             interrupt(0x10,0xE00+'\b',0,0,0);
          }
+      }else if(full==0x5000||full==0x4800){
+         if(full==0x4800){
+            command = true;
+            buffer[0] = 'u';
+            buffer[1] = 'p';
+         }else{
+            command = true;
+            buffer[0] = 'd';
+            buffer[1] = 'w';
+         }
+         doneReading = true;
+         counter=2;
+      }else if(c=='\r'){
+         doneReading = true;
       }else if(c!='\r'){
          interrupt(0x10,0xE00+c,0,0,0);
          buffer[counter] = c;
          counter++;
       }
-   }while(c!='\r' && counter < SIZE_SECTOR-1);
+   }while(!doneReading && counter < SIZE_SECTOR-1);
 
    for (i;i<counter;i++){
       string[i]=buffer[i];
    }
    string[i]='\0';
-   interrupt(0x10, 0xE00 + '\n', 0, 0, 0);
-   interrupt(0x10, 0xE00 + '\r', 0, 0, 0);
+   if(!command){
+      interrupt(0x10, 0xE00 + '\n', 0, 0, 0);
+      interrupt(0x10, 0xE00 + '\r', 0, 0, 0);
+   }
 }
 
 void executeProgram (char *path, int *result, char parentIndex) {
