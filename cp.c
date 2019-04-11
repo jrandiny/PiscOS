@@ -52,7 +52,7 @@ void copy(char* from, char* to,char currDir,int* success){
     }else if(result==0){ //kalau file
         interrupt(0x21,currDir<<8|0x13,from,&nSector,0);//getFileSize
         interrupt(0x21,currDir<<8|0x04,tempBuffer,from,&result);//readFile
-        if(result==0){
+        if(result>=0){
             interrupt(0x21,currDir<<8|0x14,tempBuffer,to,&nSector);//writeFile
             *success=nSector;
         }else{

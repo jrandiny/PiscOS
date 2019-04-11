@@ -24,7 +24,9 @@ int main(){
    char tempCurrDir;
    boolean cdError;
 
+
    interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
+   curDir = 0xFF;
    interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
    getPathNow(curDir,pathNow);
    while(1){
@@ -130,8 +132,8 @@ void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], 
       argv[i-1]=concatedInput[i];
    }
    interrupt(0x21,0x20,((curDir>>8) & 0xFF),argc,argv); // putArgs
-   interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],0x2000,&result); // executeProgram
-   if(result!=0){
+   interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],&result); // executeProgram
+   if(result==ERROR_NOT_FOUND){
       interrupt(0x21,0x00,errMsg+EMSG_PROGRAM*SIZE_EMSG_ENTRY,0,0);
       interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
    }
@@ -154,5 +156,7 @@ void getPathNow(char curDir, char* pathNow){
       stringCopy(pathNow,tempPath,0,MAX_PATHNAME);
       dirIdx = directories[dirIdx*SIZE_DIR_ENTRY];
    }
-   if(curDir==ROOT) stringCopy("/",pathNow,0,2);
+   if(curDir==ROOT){
+      stringCopy("/",pathNow,0,2);
+   }
 }

@@ -10,9 +10,10 @@ dd if=../map.img of=floppya.img bs=512 count=1 seek=256 conv=notrunc
 dd if=../files.img of=floppya.img bs=512 count=1 seek=258 conv=notrunc
 dd if=../sectors.img of=floppya.img bs=512 count=1 seek=259 conv=notrunc
 bcc -ansi -c -o kernel.o ../kernel.c
+bcc -ansi -c -o proc.o ../proc.c
 bcc -ansi -c -o string.o ../string.c
 as86 ../kernel.asm -o kernel_asm.o
-ld86 -o kernel -d kernel.o kernel_asm.o string.o
+ld86 -o kernel -d kernel.o kernel_asm.o string.o proc.o
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=1
 as86 ../lib.asm -o lib_asm.o
 bcc -ansi -c -o echo.o ../echo.c
