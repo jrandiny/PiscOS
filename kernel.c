@@ -55,7 +55,7 @@ int main() {
    makeTimerInterrupt();
 
    printLogo();
-   // printString("...");
+   printString("...");
 
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
@@ -150,8 +150,8 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x34:
          killProcess(BX,CX);
          break;
-      // default:
-         // printString("err");
+      default:
+         printString("err");
    }
 }
 

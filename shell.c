@@ -224,9 +224,7 @@ void getCommandHistory(char* cmd, boolean next){
 }
 
 void addToCommandHistory(char *cmd){
-   if(commandHistoryNeff<SHELL_MAX_HISTORY){
-      commandHistoryNeff++;
-   }
+   int tempIndex;
 
    if(commandHistoryTravelCount!=0){
       commandHistoryCurr+=commandHistoryTravelCount;
@@ -236,6 +234,20 @@ void addToCommandHistory(char *cmd){
          commandHistoryCurr += SHELL_MAX_HISTORY;
       }
    }
+
+   tempIndex = commandHistoryCurr-1;
+   if(tempIndex<0){
+      tempIndex = commandHistoryNeff-1;
+   }
+
+   if(stringCompare(cmd,commandHistory[tempIndex],SHELL_MAX_STRINGLENGTH)){
+      return;
+   }
+
+   if(commandHistoryNeff<SHELL_MAX_HISTORY){
+      commandHistoryNeff++;
+   }
+
    
    stringCopy(cmd,commandHistory[commandHistoryCurr],0,SHELL_MAX_STRINGLENGTH);
 
