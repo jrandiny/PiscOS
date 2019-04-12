@@ -10,7 +10,7 @@ void clearInput();
 int mod(int a, int b);
 
 char errMsg[SIZE_SECTOR];
-char commandHistory[50][SHELL_MAX_STRINGLENGTH];
+char commandHistory[SHELL_MAX_HISTORY][SHELL_MAX_STRINGLENGTH];
 int commandHistoryNeff = 0;
 int commandHistoryCurr = 0;
 int commandHistoryTravelCount = 0;
@@ -23,8 +23,8 @@ int main(){
    char curDir;
    char pathNow[MAX_PATHNAME];
    char directories[SIZE_SECTOR];
-   char input[MAX_PATHNAME*16];
-   char inputPreset[MAX_PATHNAME*16];
+   char input[MAX_PATHNAME];
+   char inputPreset[MAX_PATHNAME];
    char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
    char tempPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
    char tempCurrPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
@@ -35,7 +35,7 @@ int main(){
    boolean cdError;
    boolean showHist = false;
 
-   interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
+   // interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
    curDir = 0xFF;
    interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
    getPathNow(curDir,pathNow);

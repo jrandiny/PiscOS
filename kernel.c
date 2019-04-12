@@ -48,7 +48,7 @@ int div(int a, int b);
 
 int main() {
    int suc = 0;
-   char argv[SIZE_SECTOR];
+   // char argv[512];
    
    initializeProcStructures();
    makeInterrupt21();
@@ -61,7 +61,7 @@ int main() {
    interrupt(0x10,0x3,0,0,0);
    interrupt(0x10,0xE00+'\n',0,0,0);
 
-   putArgs(ROOT,0,argv);
+   // putArgs(ROOT,0,argv);
    interrupt(0x21,0xFF<<8|0x6, "shell",&suc);
    
    while(1){}
@@ -512,7 +512,7 @@ void executeProgram (char *path, int *result, char parentIndex) {
    struct PCB* pcb;
    int segment;
    int i, fileIndex;
-   char buffer[MAX_SECTORS * SIZE_SECTOR];
+   char buffer[10 * SIZE_SECTOR];
    readFile(buffer, path, result, parentIndex);
    if (*result != ERROR_NOT_FOUND) {
       setKernelDataSegment();
