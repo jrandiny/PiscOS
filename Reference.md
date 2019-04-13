@@ -1,14 +1,15 @@
 # Reference
 ## e.msg
-| Index | Text                    |
-| ----- | ----------------------- |
-| 1     | not found**\n**         |
-| 2     | insufficient**<space>** |
-| 3     | sectors**\n**           |
-| 4     | entries**\n**           |
-| 5     | already exist**\n**     |
-| 6     | program**<space>**      |
-| 7     | too many args**\n**     |
-| 8     | invalid path**\n**      |
-| 9     | IO error**\n**          |
+| Index | Text                  |
+| ----- | --------------------- |
+| 0     | not found**\n**       |
+| 1     | insufficient`<space>` |
+| 2     | sectors**\n**         |
+| 3     | entries**\n**         |
+| 4     | already exist**\n**   |
+| 5     | program`<space>`      |
+| 6     | too many args**\n**   |
+| 7     | invalid path**\n**    |
+| 8     | IO error**\n**        |
+| 9     | pid`<space>`          |
 

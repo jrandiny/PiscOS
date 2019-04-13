@@ -40,6 +40,7 @@
 #define EMSG_TOO_MANY_ARGS 6
 #define EMSG_INVALID_PATH 7
 #define EMSG_IO_ERROR 8
+#define EMSG_PID 9
 
 #define boolean unsigned char
 #define true 1
