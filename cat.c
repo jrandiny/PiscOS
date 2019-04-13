@@ -10,6 +10,7 @@ int main(){
     int result;
     char currDir;
 
+    enableInterrupts();
     interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
 
     interrupt(0x21,0x21,&currDir,0,0);
@@ -41,7 +42,7 @@ int main(){
         }
     }else if(argc==1){
         interrupt(0x21,currDir<<8 | 0x04,tempFile,argv[0],&result);
-        if(result==0){
+        if(result>=0){
             interrupt(0x21,0x00,tempFile,0,0);
             interrupt(0x21,0x00,"\n",0,0);
         }else if(result==ERROR_NOT_FOUND){

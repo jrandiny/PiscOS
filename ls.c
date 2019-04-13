@@ -8,6 +8,7 @@ int main(){
     char argc;
     int i;
 
+    enableInterrupts();
     interrupt(0x21,0x22,&argc,0,0); // ambil argc
     if(argc==0){
         interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang

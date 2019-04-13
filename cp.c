@@ -12,6 +12,7 @@ int main(){
     int result;
     char currDir;
 
+    enableInterrupts();
     interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
 
     interrupt(0x21,0x21,&currDir,0,0);

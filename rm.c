@@ -7,6 +7,7 @@ int main(){
     char argc;
     boolean succ;
 
+    enableInterrupts();
     interrupt(0x21,0x22,&argc,0,0); // ambil argc
     if(argc==1){
         succ = false;
