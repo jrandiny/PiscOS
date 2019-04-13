@@ -43,7 +43,7 @@ gcc ../loadFile.c -o loadFile -w
 ./loadFile shell
 cp ../keyproc2 keyproc2
 ./loadFile keyproc2
-cp ../logo logo
+cp ../logo lg
 cp ../e.msg e.msg
 ./loadFile e.msg
 ./loadFile logo

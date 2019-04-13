@@ -54,22 +54,19 @@ void splitString(char *s, char delim, int start, int* end){
 }
 
 void stringConcat(char *first, char *second, char *out){
-   int i;
-   int j;
+    int i = 0;
+    int j = 0;
 
-   i=0;
-   j=0;
-   while(first[i]!='\0'){
-      out[j]=first[i];
-      j++;
-      i++;
-   }
-   i=0;
-   while(second[i]!='\0'){
-      out[j]=second[i];
-      j++;
-      i++;
-   }
-   out[j] ='\0';    
-   j++; // tambah \0 di akhir
+    while(first[i]!='\0'){
+        out[j]=first[i];
+        j++;
+        i++;
+    }
+    i=0;
+    while(second[i]!='\0'){
+        out[j]=second[i];
+        j++;
+        i++;
+    }
+    out[j] ='\0';
 }

@@ -35,7 +35,6 @@ int main(){
    boolean cdError;
    boolean showHist = false;
 
-   // interrupt(0x21,0x21,&curDir,0,0); // ambil directori sekarang
    curDir = 0xFF;
    interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
    getPathNow(curDir,pathNow);
@@ -50,11 +49,11 @@ int main(){
          interrupt(0x21,0x01,input,0,0); // ambil input
       }
 
-      if(input[0]=='u' && input[1] == 'p' && input[2] == '\0'){
+      if(input[0]==0x00 && input[1] == 0x48 && input[2] == '\0'){
          getCommandHistory(inputPreset,false);
          interrupt(0x21,0x15,0,0,0);
          showHist = true;
-      }else if(input[0]=='d' && input[1] == 'w' && input[2] == '\0'){
+      }else if(input[0]==0x00 && input[1] == 0x50 && input[2] == '\0'){
          getCommandHistory(inputPreset,true);
          interrupt(0x21,0x15,0,0,0);
          showHist = true;

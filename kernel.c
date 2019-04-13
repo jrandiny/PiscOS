@@ -48,7 +48,6 @@ int div(int a, int b);
 
 int main() {
    int suc = 0;
-   // char argv[512];
    
    initializeProcStructures();
    makeInterrupt21();
@@ -61,7 +60,6 @@ int main() {
    interrupt(0x10,0x3,0,0,0);
    interrupt(0x10,0xE00+'\n',0,0,0);
 
-   // putArgs(ROOT,0,argv);
    interrupt(0x21,0xFF<<8|0x6, "shell",&suc);
    
    while(1){}
@@ -151,7 +149,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          killProcess(BX,CX);
          break;
       default:
-         printString("err");
+         printString("itr err");
    }
 }
 
@@ -478,15 +476,9 @@ void readString(char *string, int disableProcessControls, char* preset){
             interrupt(0x10,0xE00+'\b',0,0,0);
          }
       }else if(full==0x5000||full==0x4800){
-         if(full==0x4800){
-            command = true;
-            buffer[0] = 'u';
-            buffer[1] = 'p';
-         }else{
-            command = true;
-            buffer[0] = 'd';
-            buffer[1] = 'w';
-         }
+         buffer[0] = full & 0xFF;
+         buffer[1] = (full>>8 )& 0xFF;
+         command = true;
          doneReading = true;
          counter=2;
       }else if(c=='\r'){
@@ -512,7 +504,7 @@ void executeProgram (char *path, int *result, char parentIndex) {
    struct PCB* pcb;
    int segment;
    int i, fileIndex;
-   char buffer[10 * SIZE_SECTOR];
+   char buffer[SIZE_USABLE_STACK_MULTIPLIER * SIZE_SECTOR];
    readFile(buffer, path, result, parentIndex);
    if (*result != ERROR_NOT_FOUND) {
       setKernelDataSegment();
@@ -569,7 +561,7 @@ void printLogo(){
 
    clearScreen(30);
    
-   readFile(buff,"logo",&succ,ROOT);
+   readFile(buff,"lg",&succ,ROOT);
    if(succ>=0){
       while(true){
          if(buff[i]=='\0'){
@@ -632,8 +624,6 @@ void getCurdir (char *curdir) {
    char args[SIZE_SECTOR];
    readSector(args, LOC_ARGS_SECTOR);
    *curdir = args[0];
-   // printString(args);
-   // *curdir = 0xFF;
 }
 
 void getArgc (char *argc) {
