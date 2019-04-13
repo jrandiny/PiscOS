@@ -15,6 +15,7 @@
 #define MAX_SEGMENTS 8
 #define EMPTY_INDEX 0xFF
 #define NO_PARENT -1
+#define NO_TIMER -1
 
 // Constants that are useful in the memory map entries.
 #define SEGMENT_FREE 0
@@ -27,6 +28,7 @@
 #define STARTING 2
 #define READY 3
 #define PAUSED 4
+#define PAUSED_TIMER 5
 
 /*
  * The Process Control Block
@@ -37,6 +39,7 @@ struct PCB {
   int segment;		// memory segment occupied by the process.
 	int stackPointer;	// address of the stack pointer for the process.
   int parentSegment;
+  int sleep;
 	
 	/*
 	 * Pointers to allow PCBs to be stored in doubly linked lists.

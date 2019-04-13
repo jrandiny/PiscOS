@@ -25,6 +25,7 @@ void initializeProcStructures() {
         pcbPool[i].segment = 0x00;
         pcbPool[i].stackPointer = 0x00;
         pcbPool[i].parentSegment = NO_PARENT;
+				pcbPool[i].sleep = NO_TIMER;
     }
 
     /*
@@ -36,12 +37,13 @@ void initializeProcStructures() {
     idleProc.segment = 0x00;
     idleProc.stackPointer = 0x00;
     idleProc.parentSegment = NO_PARENT;
+		idleProc.sleep = NO_TIMER;
     
     /*
      * The PCB for the running process should refer to the PCB for the idle process     
     */  
     running = &idleProc;
-     
+    
     // the ready queue should be empty.
     readyHead = NULL;
     readyTail = NULL;
@@ -104,6 +106,7 @@ void releasePCB(struct PCB *pcb) {
 	pcb->segment = 0x00;
 	pcb->stackPointer = 0x00;
 	pcb->parentSegment = NO_PARENT;
+	pcb->sleep = NO_TIMER;
 }
 
 /*

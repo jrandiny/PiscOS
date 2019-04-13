@@ -7,6 +7,8 @@ int main(){
     int j;
     int k;
 
+    enableInterrupts();
+
     interrupt(0x21,0x22,&n,0,0); // ambil argc
     if(n>0){
         for(i=0;i<n;++i){ // copy semua isi argv ke temp

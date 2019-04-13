@@ -36,20 +36,19 @@ void sleep();
 void pauseProcess(int segment, int *result);
 void resumeProcess(int segment, int *result);
 void killProcess(int segment, int *result);
+void timedSleep(int ticks);
 
 // Helper function
 void clear(char *buffer, int length);
-void printLogo();
-void clearScreen(int height);
+// void printLogo();
 void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
 void finder(char* name,char* dir, char parent,int* idx);
 int mod(int a, int b);
 int div(int a, int b);
-void getPCB(int index, struct PCB* result);
+void getPCBStateIndex(int index, struct PCB* result);
 
 int main() {
    int suc = 0;
-   // struct PCB pcb;
    
    initializeProcStructures();
    makeInterrupt21();
@@ -57,7 +56,7 @@ int main() {
 
    // printLogo();
    interrupt(0x10,0x3,0,0,0);
-   printString("...");
+   printString("Press any key..");
 
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
@@ -137,7 +136,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          clearLine();
          break;
       case 0x16:
-         getPCB(BX,CX);
+         getPCBStateIndex(BX,CX);
          break;
       case 0x30:
          yieldControl();
@@ -154,6 +153,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
       case 0x34:
          killProcess(BX,CX);
          break;
+      case 0x40:
+         timedSleep(BX);
+         break;
       default:
          printString("itr err");
    }
@@ -165,19 +167,28 @@ void handleTimerInterrupt(int segment, int stackPointer) {
 
    setKernelDataSegment();
 
-
    currPCB = getPCBOfSegment(segment);
    currPCB->stackPointer = stackPointer;
-   if (currPCB->state != PAUSED) {
+
+   if(currPCB->state == PAUSED_TIMER){
+      (currPCB->sleep)--;
+
+      if(currPCB->sleep==0){
+         currPCB->state = READY;
+         currPCB->sleep = NO_TIMER;
+      }
+   }
+
+   if (currPCB->state != PAUSED && currPCB->state != PAUSED_TIMER){
       currPCB->state = READY;
       addToReady(currPCB);
    }
    do {
       nextPCB = removeFromReady();
    }
-   while (nextPCB != NULL && (nextPCB->state == DEFUNCT || nextPCB->state == PAUSED));
+   while (nextPCB != NULL && (nextPCB->state == DEFUNCT || nextPCB->state == PAUSED || nextPCB->state == PAUSED_TIMER));
 
-   if (nextPCB != NULL) {
+   if (nextPCB != NULL && nextPCB->sleep == NO_TIMER) {
       nextPCB->state = RUNNING;
       segment = nextPCB->segment;
       stackPointer = nextPCB->stackPointer;
@@ -185,7 +196,7 @@ void handleTimerInterrupt(int segment, int stackPointer) {
    } else {
       running = &idleProc;
    }
-
+   
    restoreDataSegment();
    returnFromTimer(segment, stackPointer);
 } 
@@ -502,7 +513,7 @@ void readString(char *string, int disableProcessControls, char* preset){
                terminateProgram(&suc);
             }else{
                sleep();
-               resumeProcess(0x2000,&suc); // resume kernel
+               resumeProcess(0x2000,&suc); // resume shell
             }
          }
       }else if(c=='\r'){
@@ -545,6 +556,7 @@ void executeProgram (char *path, int *result, char parentIndex, boolean par) {
          pcb->segment = segment;
          pcb->stackPointer = 0xFF00;
          pcb->parentSegment = running->segment;
+         pcb->sleep = NO_TIMER;
          addToReady(pcb);
 
          restoreDataSegment();
@@ -576,7 +588,7 @@ void terminateProgram (int *result) {
    yieldControl();
 }
 
-void printLogo(){
+// void printLogo(){
    // int succ;
    // char buff[SIZE_SECTOR];
    // int i=0;
@@ -612,16 +624,7 @@ void printLogo(){
    //       i++;
    //    }
    // }
-}
-
-void clearScreen(int height){
-   int i,j;
-   for (i=0;i<height;i++){
-      for (j=0;j<80;j++){
-         putInMemory(0xB000, 0x8000 + (80 * i + j) * 2,' ');
-      }
-   }
-}
+// }
 
 void putArgs (char curdir, char argc, char **argv) {
    char args[SIZE_SECTOR];
@@ -930,10 +933,16 @@ void killProcess(int segment, int *result){
    *result = res;
 }  
 
-void getPCB(int index, struct PCB* result){
+void getPCBStateIndex(int index, struct PCB* result){
    struct PCB pcb;
    setKernelDataSegment();
-   pcb=pcbPool[index];
+   pcb.state = pcbPool[index].state;
+   pcb.index = pcbPool[index].index;
    restoreDataSegment();
-   *result = pcb;
+   (*result).state = pcb.state;
+   (*result).index = pcb.index;
+}
+
+void timedSleep(int ticks){
+   interrupt(0x15,0x8600,0,ticks*50,0);
 }
