@@ -11,6 +11,7 @@ int main(){
   char operator[MAX_MEM];
   char hasil[MAX_MEM];
 
+  enableInterrupts();
   interrupt(0x21,0x0,"Masukkan angka 1:",0,0);
   interrupt(0x21,0x1,angka1,0,0);
   interrupt(0x21,0x0,"Masukkan angka 2:",0,0);
@@ -44,7 +45,8 @@ int main(){
       interrupt(0x21,0x0,hasil,0,0);
       break;
   }
-
+  interrupt(0x21,0x00,"\n\r",0,0);
+  interrupt(0x21,0x7,0,0,0); // terminateProgram
   return 0;
 }
 
@@ -85,7 +87,7 @@ int div(int a, int b) {
 }
 
 void intToChar(int angka, char* hasil){
-  char tempHasil[MAX_MEM];
+  char tempHasil[31];
   int temp;
   int i=0;
   int panjang;
@@ -110,11 +112,11 @@ void intToChar(int angka, char* hasil){
     }
 
     panjang = i;
-
+    hasil[panjang]='\0';
     while(i>0){
       hasil[panjang-i]=tempHasil[i-1];
       i--;
     }
-  }  
+  }
 }
 
