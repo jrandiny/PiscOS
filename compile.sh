@@ -23,7 +23,9 @@ bcc -ansi -c -o rm.o ../rm.c
 bcc -ansi -c -o cat.o ../cat.c
 bcc -ansi -c -o cp.o ../cp.c
 bcc -ansi -c -o mv.o ../mv.c
+bcc -ansi -c -o ps.o ../ps.c
 bcc -ansi -c -o shell.o ../shell.c
+bcc -ansi -c -o calculator.o ../calculator.c
 ld86 -o echo -d echo.o lib_asm.o
 ld86 -o mkdir -d mkdir.o lib_asm.o
 ld86 -o ls -d ls.o lib_asm.o string.o
@@ -31,7 +33,9 @@ ld86 -o rm -d rm.o lib_asm.o
 ld86 -o cat -d cat.o lib_asm.o string.o
 ld86 -o cp -d cp.o lib_asm.o string.o
 ld86 -o mv -d mv.o lib_asm.o string.o
+ld86 -o ps -d ps.o lib_asm.o
 ld86 -o shell -d shell.o lib_asm.o string.o
+ld86 -o calculator -d calculator.o lib_asm.o
 gcc ../loadFile.c -o loadFile -w
 ./loadFile echo
 ./loadFile mkdir
@@ -40,10 +44,14 @@ gcc ../loadFile.c -o loadFile -w
 ./loadFile cat
 ./loadFile cp
 ./loadFile mv
+./loadFile ps
 ./loadFile shell
-cp ../keyproc2 keyproc2
-./loadFile keyproc2
-cp ../logo lg
+./loadFile calculator
+cp ../keyproc3a keyproc3a 
+cp ../keyproc3b keyproc3b
+./loadFile keyproc3a
+./loadFile keyproc3b
+cp ../lg lg
 cp ../e.msg e.msg
 ./loadFile e.msg
-./loadFile logo
+./loadFile lg
