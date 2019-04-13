@@ -7,8 +7,11 @@ void addToCommandHistory(char* cmd);
 void getCommandHistory(char* cmd, boolean next);
 void clearInput();
 void cd(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char *curDir, char pathNow[MAX_PATHNAME]);
+void printLogo();
+void clearScreen(int height);
 
 int mod(int a, int b);
+int pidToSegment(char* pid);
 
 char errMsg[SIZE_SECTOR];
 char commandHistory[SHELL_MAX_HISTORY][SHELL_MAX_STRINGLENGTH];
@@ -28,6 +31,13 @@ int main(){
    char pathNow[MAX_PATHNAME];
    char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
    boolean showHist = false;
+
+   printLogo();
+   
+   interrupt(0x21,0x00,"Press any key to continue...",0,0);
+   interrupt(0x16, 0, 0, 0, 0);
+   interrupt(0x10,0x3,0,0,0);
+   interrupt(0x10,0xE00+'\n',0,0);
 
    curDir = 0xFF;
    interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
@@ -61,30 +71,30 @@ int main(){
             }else{
                interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
             }
-         }else if(stringCompare(concatedInput[0],"pause",5)){
-            tempPID = concatedInput[1][0] + '0';
-            tempPID = tempPID+2;
-            tempPID = tempPID<<12;
-            interrupt(0x21,0x32,tempPID,&result,0);
+         }else if(stringCompare(concatedInput[0],"pause",6)){
+            // tempPID = concatedInput[1][0] + '0';
+            // tempPID = tempPID+2;
+            // tempPID = tempPID<<12;
+            interrupt(0x21,0x32,pidToSegment(concatedInput[1]),&result,0);
             if(result==ERROR_NOT_FOUND){
                interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
                interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
             }
-         }else if(stringCompare(concatedInput[0],"resume",6)){
-            tempPID = concatedInput[1][0] + '0';
-            tempPID = tempPID+2;
-            tempPID = tempPID<<12;
-            interrupt(0x21,0x33,tempPID,&result,0);
+         }else if(stringCompare(concatedInput[0],"resume",7)){
+            // tempPID = concatedInput[1][0] + '0';
+            // tempPID = tempPID+2;
+            // tempPID = tempPID<<12;
+            interrupt(0x21,0x33,pidToSegment(concatedInput[1]),&result,0);
             interrupt(0x21,0x31,0,0,0);
             if(result==ERROR_NOT_FOUND){
                interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
                interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
             }
-         }else if(stringCompare(concatedInput[0],"kill",4)){
-            tempPID = concatedInput[1][0] + '0';
-            tempPID = tempPID+2;
-            tempPID = tempPID<<12;
-            interrupt(0x21,0x34,tempPID,&result,0);
+         }else if(stringCompare(concatedInput[0],"kill",5)){
+            // tempPID = concatedInput[1][0] + '0';
+            // tempPID = tempPID+2;
+            // tempPID = tempPID<<12;
+            interrupt(0x21,0x34,pidToSegment(concatedInput[1]),&result,0);
             if(result==ERROR_NOT_FOUND){
                interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
                interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
@@ -315,4 +325,66 @@ int mod(int a, int b) {
       a = a - b;
    }
    return a;
+}
+
+int pidToSegment(char* pid){
+   int temp;
+   if(stringLen(pid)==1){
+      temp = pid[0]-'0';
+      if(temp>=0 && temp <=9){
+         return (temp+2)<<12;
+      }
+   } 
+   return -1;
+}
+
+void printLogo(){
+   int succ;
+   char buff[SIZE_SECTOR];
+   int i=0;
+   int j=0;
+   int k=20;
+   int x=20;
+   char color = 0xF;
+
+   clearScreen(30);
+   
+   // readFile(buff,"lg",&succ,ROOT);
+   interrupt(0x21,ROOT<<8 | 0x04,buff,"lg",&succ);
+   if(succ>=0){
+      while(true){
+         if(buff[i]=='\0'){
+            if(x==20){
+               x=25;
+               k=25;
+               j=5;
+               i++;
+               color=0x6;
+            }else{
+               break;
+            }
+         }
+         if (buff[i]=='\n'){
+            j++;
+            k=x;
+         } else {
+            // putInMemory(0xB000, 0x8000 + (80 * j + k) * 2, buff[i]);
+            interrupt(0x21,0x17,buff[i],j,k);
+            interrupt(0x21,0x01<<8 | 0x17,color,j,k);
+            // putInMemory(0xB000, 0x8001 + (80 * j + k) * 2, color);
+            k++;
+         }
+         i++;
+      }
+   }
+}
+
+void clearScreen(int height){
+   int i,j;
+   for (i=0;i<height;i++){
+      for (j=0;j<80;j++){
+         // putInMemory(0xB000, 0x8000 + (80 * i + j) * 2,' ');
+         interrupt(0x21,0x17,' ',i,j);
+      }
+   }
 }

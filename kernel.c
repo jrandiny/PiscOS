@@ -55,11 +55,11 @@ int main() {
    makeTimerInterrupt();
 
    // printLogo();
-   interrupt(0x10,0x3,0,0,0);
-   printString("Press any key..");
+   // interrupt(0x10,0x3,0,0,0);
+   // printString("Press any key..");
 
-   interrupt(0x16, 0, 0, 0, 0);
-   interrupt(0x10,0x3,0,0,0);
+   // interrupt(0x16, 0, 0, 0, 0);
+   // interrupt(0x10,0x3,0,0,0);
    // interrupt(0x10,0xE00+'\n',0,0,0);
 
    interrupt(0x21,0xFF<<8|0x6, "shell",&suc);
@@ -137,6 +137,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          break;
       case 0x16:
          getPCBStateIndex(BX,CX);
+         break;
+      case 0x17:
+         putInMemory(0xB000, (0x8000+AH) + (80 * CX + DX) * 2, BX);
          break;
       case 0x30:
          yieldControl();
