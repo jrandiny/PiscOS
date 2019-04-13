@@ -6,6 +6,7 @@ void getPathNow(char curDir, char* pathNow);
 void addToCommandHistory(char* cmd);
 void getCommandHistory(char* cmd, boolean next);
 void clearInput();
+void cd(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char *curDir, char pathNow[MAX_PATHNAME]);
 
 int mod(int a, int b);
 
@@ -20,33 +21,25 @@ int main(){
    int i;
    int j;
    int result;
+   int tempPID;
    char curDir;
-   char pathNow[MAX_PATHNAME];
-   char directories[SIZE_SECTOR];
    char input[MAX_PATHNAME];
    char inputPreset[MAX_PATHNAME];
+   char pathNow[MAX_PATHNAME];
    char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
-   char tempPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
-   char tempCurrPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
-   int pathPartCount;
-   int currPathPartCount;
-   int tempFindResult;
-   char tempCurrDir;
-   boolean cdError;
    boolean showHist = false;
 
    curDir = 0xFF;
    interrupt(0x21,0xFF<<8|0x04,errMsg,"e.msg",0);
    getPathNow(curDir,pathNow);
    while(1){
-      interrupt(0x21,0x02,directories,LOC_DIR_SECTOR,0); // readSector directori
       interrupt(0x21,0x00,pathNow,0,0);
       interrupt(0x21,0x00,"$ ",0,0);
 
       if(showHist){
-         interrupt(0x21,0x01,input,0,inputPreset); // ambil input
+         interrupt(0x21,0x01,input,1,inputPreset); // ambil input
       }else{
-         interrupt(0x21,0x01,input,0,0); // ambil input
+         interrupt(0x21,0x01,input,1,0); // ambil input
       }
 
       if(input[0]==0x00 && input[1] == 0x48 && input[2] == '\0'){
@@ -64,56 +57,37 @@ int main(){
          splitStringArray(input,' ',&length,concatedInput);//split input
          if(stringCompare(concatedInput[0],"cd",2)){
             if(length==2){
-               cdError = false;
-               if(concatedInput[1][0]=='/'){
-                  tempCurrDir = ROOT;
-                  splitStringArray(concatedInput[1]+1,'/',&pathPartCount,&tempPath);
-               }else{
-                  tempCurrDir = curDir;
-                  splitStringArray(concatedInput[1],'/',&pathPartCount,&tempPath);
-               }
-
-               splitStringArray(pathNow+1,'/',&currPathPartCount,&tempCurrPath);
-               
-               for(i=0;i<pathPartCount;i++){
-                  if(stringCompare(tempPath[i],"..",2)){
-                     // Up directory
-                     if(tempCurrPath[currPathPartCount-1][0]!='\0'){
-                        if(currPathPartCount>=1){
-                           currPathPartCount--;
-                           interrupt(0x21,directories[tempCurrDir*SIZE_DIR_ENTRY]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
-
-                           //assert found
-                           if(tempFindResult==ERROR_NOT_FOUND){
-                              cdError = true;
-                              break;
-                           }
-                           tempCurrDir = directories[tempFindResult*SIZE_DIR_ENTRY];
-                        }
-                     }
-                  }else if(tempPath[i][0]!='\0'){
-                     // Go to
-                     interrupt(0x21,tempCurrDir<<8|0x11,tempPath[i],directories,&tempFindResult);//finder
-                     //Assert found
-                     if(tempFindResult==ERROR_NOT_FOUND){
-                        cdError = true;
-                        break;
-                     }
-                     currPathPartCount++;
-                     stringCopy(tempPath[i],tempCurrPath[currPathPartCount-1],0,SHELL_MAX_STRINGLENGTH);
-
-                     tempCurrDir = (char)tempFindResult;
-                  }
-               }
-
-               if(!cdError){
-                  curDir = tempCurrDir;
-                  getPathNow(curDir,pathNow);
-               }else{
-                  interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
-               }
+               cd(concatedInput,&curDir,pathNow);
             }else{
                interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
+            }
+         }else if(stringCompare(concatedInput[0],"pause",5)){
+            tempPID = concatedInput[1][0] + '0';
+            tempPID = tempPID+2;
+            tempPID = tempPID<<12;
+            interrupt(0x21,0x32,tempPID,&result,0);
+            if(result==ERROR_NOT_FOUND){
+               interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
+               interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
+            }
+         }else if(stringCompare(concatedInput[0],"resume",6)){
+            tempPID = concatedInput[1][0] + '0';
+            tempPID = tempPID+2;
+            tempPID = tempPID<<12;
+            interrupt(0x21,0x33,tempPID,&result,0);
+            interrupt(0x21,0x31,0,0,0);
+            if(result==ERROR_NOT_FOUND){
+               interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
+               interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
+            }
+         }else if(stringCompare(concatedInput[0],"kill",4)){
+            tempPID = concatedInput[1][0] + '0';
+            tempPID = tempPID+2;
+            tempPID = tempPID<<12;
+            interrupt(0x21,0x34,tempPID,&result,0);
+            if(result==ERROR_NOT_FOUND){
+               interrupt(0x21,0x00,errMsg+EMSG_PID*SIZE_EMSG_ENTRY,0,0);
+               interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
             }
          }else if(stringCompare(concatedInput[0], "./",2)){ // run program dari currDir
             for(i=0;i<stringLen(concatedInput[0])-2;i++){
@@ -121,12 +95,11 @@ int main(){
             }
             concatedInput[0][i]='\0';
 
-            executeProgram(concatedInput, length-1, pathNow, curDir<<8 | curDir);
+            executeProgram(concatedInput, length-1, pathNow, curDir<<8|curDir);
          }else{ // run program dari root
             executeProgram(concatedInput, length-1, pathNow, curDir<<8|0xFF);
          }
       }
-      // interrupt(0x21,0x00,"\n\r",0,0);
    }
 }
 
@@ -155,12 +128,18 @@ void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], 
    char* argv[50];
    int result;
    int i;
+   boolean par = false;
+
+   if(concatedInput[argc][0] == '&'){
+      par = true;
+      argc--;
+   }
    
    for(i=1;i<=argc;i++){
       argv[i-1]=concatedInput[i];
    }
    interrupt(0x21,0x20,((curDir>>8) & 0xFF),argc,argv); // putArgs
-   interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],&result); // executeProgram
+   interrupt(0x21,(curDir & 0xFF)<<8|0x6,concatedInput[0],&result,par); // executeProgram
    if(result==ERROR_NOT_FOUND){
       interrupt(0x21,0x00,errMsg+EMSG_PROGRAM*SIZE_EMSG_ENTRY,0,0);
       interrupt(0x21,0x00,errMsg+EMSG_NOT_FOUND*SIZE_EMSG_ENTRY,0,0);
@@ -265,6 +244,69 @@ void clearInput(){
 
    for(i=0;i<SHELL_MAX_STRINGLENGTH;i++){
       interrupt(0x21,0x00,clean,0,0);
+   }
+}
+
+void cd(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], char *curDir , char pathNow[MAX_PATHNAME]){
+   boolean cdError = false;
+   char directories[SIZE_SECTOR];
+   char tempPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
+   char pathNow[MAX_PATHNAME];
+   char tempCurrPath[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH];
+   char tempCurrDir;
+   int pathPartCount;
+   int tempFindResult;
+   int currPathPartCount;
+   int i;
+
+   interrupt(0x21,0x02,directories,LOC_DIR_SECTOR,0);
+
+   if(concatedInput[1][0]=='/'){
+      tempCurrDir = ROOT;
+      splitStringArray(concatedInput[1]+1,'/',&pathPartCount,&tempPath);
+   }else{
+      tempCurrDir = *curDir;
+      splitStringArray(concatedInput[1],'/',&pathPartCount,&tempPath);
+   }
+
+   splitStringArray(pathNow+1,'/',&currPathPartCount,&tempCurrPath);
+   
+   for(i=0;i<pathPartCount;i++){
+      if(stringCompare(tempPath[i],"..",2)){
+         // Up directory
+         if(tempCurrPath[currPathPartCount-1][0]!='\0'){
+            if(currPathPartCount>=1){
+               currPathPartCount--;
+               interrupt(0x21,directories[tempCurrDir*SIZE_DIR_ENTRY]<<8|0x11,tempCurrPath[currPathPartCount],directories,&tempFindResult);//finder
+
+               //assert found
+               if(tempFindResult==ERROR_NOT_FOUND){
+                  cdError = true;
+                  break;
+               }
+               tempCurrDir = directories[tempFindResult*SIZE_DIR_ENTRY];
+            }
+         }
+      }else if(tempPath[i][0]!='\0'){
+         // Go to
+         interrupt(0x21,tempCurrDir<<8|0x11,tempPath[i],directories,&tempFindResult);//finder
+         //Assert found
+         if(tempFindResult==ERROR_NOT_FOUND){
+            cdError = true;
+            break;
+         }
+         currPathPartCount++;
+         stringCopy(tempPath[i],tempCurrPath[currPathPartCount-1],0,SHELL_MAX_STRINGLENGTH);
+
+         tempCurrDir = (char)tempFindResult;
+      }
+   }
+
+   if(!cdError){
+      *curDir = tempCurrDir;
+      getPathNow(curDir,pathNow);
+   }else{
+      interrupt(0x21,0x00,errMsg+EMSG_INVALID_PATH*SIZE_EMSG_ENTRY,0,0);
    }
 }
 

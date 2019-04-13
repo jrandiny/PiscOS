@@ -10,7 +10,7 @@ void clearLine();
 void readString(char *string, int disableProcessControls,char* preset);
 // void readString(char *string);
 // Program syscall
-void executeProgram (char *path, int *result, char parentIndex);
+void executeProgram (char *path, int *result, char parentIndex, boolean par);
 // void executeProgram(char *path, int segment, int *result, char parentIndex);
 void terminateProgram (int *result);
 // Argument syscall
@@ -45,20 +45,23 @@ void pathParser(char *path, char *fileName, int *dirIndex, char parentIndex);
 void finder(char* name,char* dir, char parent,int* idx);
 int mod(int a, int b);
 int div(int a, int b);
+void getPCB(int index, struct PCB* result);
 
 int main() {
    int suc = 0;
+   // struct PCB pcb;
    
    initializeProcStructures();
    makeInterrupt21();
    makeTimerInterrupt();
 
-   printLogo();
+   // printLogo();
+   interrupt(0x10,0x3,0,0,0);
    printString("...");
 
    interrupt(0x16, 0, 0, 0, 0);
    interrupt(0x10,0x3,0,0,0);
-   interrupt(0x10,0xE00+'\n',0,0,0);
+   // interrupt(0x10,0xE00+'\n',0,0,0);
 
    interrupt(0x21,0xFF<<8|0x6, "shell",&suc);
    
@@ -89,7 +92,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          writeFile(BX, CX, DX, AH);
          break;
       case 0x06:
-         executeProgram(BX, CX, AH);
+         executeProgram(BX, CX, AH, DX);
          break;
       case 0x07:
          terminateProgram(BX);
@@ -132,6 +135,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX) {
          break;
       case 0x15:
          clearLine();
+         break;
+      case 0x16:
+         getPCB(BX,CX);
          break;
       case 0x30:
          yieldControl();
@@ -346,7 +352,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex){
          if (files[fileIndex * SIZE_DIR_ENTRY+1] == '\0') {
             found = true;
          }else{
-            if(stringCompare(files+fileIndex*SIZE_DIR_ENTRY+1,fileName,0,MAX_FILENAME)&&files[fileIndex*SIZE_DIR_ENTRY]==dirIndex){
+            if(stringCompare(files+fileIndex*SIZE_DIR_ENTRY+1,fileName,MAX_FILENAME)&&files[fileIndex*SIZE_DIR_ENTRY]==dirIndex){
                fileExists = true;
             }
             fileIndex++;
@@ -448,13 +454,13 @@ void clearLine(){
 }
 
 void readString(char *string, int disableProcessControls, char* preset){
-   // kurang ctrl+c dan ctrl+z
    char buffer[SIZE_SECTOR];
    char c;
    char sc;
    unsigned full;
    int counter = 0;
    int i =0;
+   int suc = 0;
    boolean doneReading = false;
    boolean command = false;
 
@@ -481,6 +487,24 @@ void readString(char *string, int disableProcessControls, char* preset){
          command = true;
          doneReading = true;
          counter=2;
+      }else if(c==0x03 || c==0x1A){
+         if(!disableProcessControls){
+            interrupt(0x10,0xE00+'^',0,0,0);
+            if(c==0x03){
+               interrupt(0x10,0xE00+'C',0,0,0);
+            }else{
+               interrupt(0x10,0xE00+'Z',0,0,0);
+            }
+            interrupt(0x10,0xE00+'\n',0,0,0);
+            interrupt(0x10,0xE00+'\r',0,0,0);
+
+            if(c==0x03){
+               terminateProgram(&suc);
+            }else{
+               sleep();
+               resumeProcess(0x2000,&suc); // resume kernel
+            }
+         }
       }else if(c=='\r'){
          doneReading = true;
       }else if(c!='\r'){
@@ -500,7 +524,7 @@ void readString(char *string, int disableProcessControls, char* preset){
    }
 }
 
-void executeProgram (char *path, int *result, char parentIndex) {
+void executeProgram (char *path, int *result, char parentIndex, boolean par) {
    struct PCB* pcb;
    int segment;
    int i, fileIndex;
@@ -528,7 +552,9 @@ void executeProgram (char *path, int *result, char parentIndex) {
             putInMemory(segment, i, buffer[i]);
          }
          initializeProgram(segment);
-         sleep();
+         if(!par){
+            sleep();
+         }
       } else {
          *result = ERROR_INSUFFICIENT_SEGMENTS;
       }
@@ -551,41 +577,41 @@ void terminateProgram (int *result) {
 }
 
 void printLogo(){
-   int succ;
-   char buff[SIZE_SECTOR*MAX_SECTORS];
-   int i=0;
-   int j=0;
-   int k=20;
-   int x=20;
-   char color = 0xF;
+   // int succ;
+   // char buff[SIZE_SECTOR];
+   // int i=0;
+   // int j=0;
+   // int k=20;
+   // int x=20;
+   // char color = 0xF;
 
-   clearScreen(30);
+   // clearScreen(30);
    
-   readFile(buff,"lg",&succ,ROOT);
-   if(succ>=0){
-      while(true){
-         if(buff[i]=='\0'){
-            if(x==20){
-               x=25;
-               k=25;
-               j=5;
-               i++;
-               color=0x6;
-            }else{
-               break;
-            }
-         }
-         if (buff[i]=='\n'){
-            j++;
-            k=x;
-         } else {
-            putInMemory(0xB000, 0x8000 + (80 * j + k) * 2, buff[i]);
-            putInMemory(0xB000, 0x8001 + (80 * j + k) * 2, color);
-            k++;
-         }
-         i++;
-      }
-   }
+   // readFile(buff,"lg",&succ,ROOT);
+   // if(succ>=0){
+   //    while(true){
+   //       if(buff[i]=='\0'){
+   //          if(x==20){
+   //             x=25;
+   //             k=25;
+   //             j=5;
+   //             i++;
+   //             color=0x6;
+   //          }else{
+   //             break;
+   //          }
+   //       }
+   //       if (buff[i]=='\n'){
+   //          j++;
+   //          k=x;
+   //       } else {
+   //          putInMemory(0xB000, 0x8000 + (80 * j + k) * 2, buff[i]);
+   //          putInMemory(0xB000, 0x8001 + (80 * j + k) * 2, color);
+   //          k++;
+   //       }
+   //       i++;
+   //    }
+   // }
 }
 
 void clearScreen(int height){
@@ -903,3 +929,11 @@ void killProcess(int segment, int *result){
    restoreDataSegment();
    *result = res;
 }  
+
+void getPCB(int index, struct PCB* result){
+   struct PCB pcb;
+   setKernelDataSegment();
+   pcb=pcbPool[index];
+   restoreDataSegment();
+   *result = pcb;
+}
