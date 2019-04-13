@@ -140,7 +140,7 @@ void executeProgram(char concatedInput[SHELL_MAX_PART][SHELL_MAX_STRINGLENGTH], 
    int i;
    boolean par = false;
 
-   if(concatedInput[argc][0] == '&'){
+   if(stringLen(concatedInput[argc])==1 && concatedInput[argc][0] == '&'){
       par = true;
       argc--;
    }
