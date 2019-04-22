@@ -34,7 +34,7 @@ ld86 -o rm -d rm.o lib_asm.o
 ld86 -o cat -d cat.o lib_asm.o string.o
 ld86 -o cp -d cp.o lib_asm.o string.o
 ld86 -o mv -d mv.o lib_asm.o string.o
-ld86 -o ps -d ps.o lib_asm.o
+ld86 -o ps -d ps.o lib_asm.o string.o
 ld86 -o timer -d timer.o lib_asm.o
 ld86 -o shell -d shell.o lib_asm.o string.o
 ld86 -o calculator -d calculator.o lib_asm.o

@@ -20,9 +20,16 @@ int main(){
             intToChar(i,convertedResult);
             interrupt(0x21,0x00,"PID=",0,0);
             interrupt(0x21,0x00,convertedResult,0,0);
-            intToChar(pcb.state,convertedResult);
             interrupt(0x21,0x00," Status=",0,0);
-            interrupt(0x21,0x00,convertedResult,0,0);
+            if(pcb.state==1){
+              interrupt(0x21,0x00,"Running",0,0);
+            }else if(pcb.state==2){
+              interrupt(0x21,0x00,"Starting",0,0);
+            }else if(pcb.state==3){
+              interrupt(0x21,0x00,"Ready",0,0);              
+            }else if(pcb.state==4){
+              interrupt(0x21,0x00,"Paused",0,0);
+            }
             interrupt(0x21,0x00," Name=",0,0);
             interrupt(0x21,0x00,files+pcb.index*SIZE_DIR_ENTRY+1,0,0);
             intToChar(pcb.index,convertedResult);
