@@ -50,10 +50,6 @@ gcc ../loadFile.c -o loadFile -w
 ./loadFile timer
 ./loadFile shell
 ./loadFile calculator
-cp ../keyproc3a keyproc3a 
-cp ../keyproc3b keyproc3b
-./loadFile keyproc3a
-./loadFile keyproc3b
 cp ../lg lg
 cp ../e.msg e.msg
 ./loadFile e.msg
